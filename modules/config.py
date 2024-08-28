@@ -1,0 +1,270 @@
+import re
+from configparser import ConfigParser
+from dataclasses import dataclass
+from modules.utils import TextColor, prevent_keyboard_exit_error, absolute_path, end
+
+config = ConfigParser()
+hotkey_regex = "^([\\^!+#<>]*([a-zA-Z0-9]|F[1-9]|F1[0-2])?)\\s*$"
+colors = [
+    "aliceblue",
+    "antiquewhite",
+    "aqua",
+    "aquamarine",
+    "azure",
+    "beige",
+    "bisque",
+    "black",
+    "blanchedalmond",
+    "blue",
+    "blueviolet",
+    "brown",
+    "burlywood",
+    "cadetblue",
+    "chartreuse",
+    "chocolate",
+    "coral",
+    "cornflowerblue",
+    "cornsilk",
+    "crimson",
+    "cyan",
+    "darkblue",
+    "darkcyan",
+    "darkgoldenrod",
+    "darkgray",
+    "darkgreen",
+    "darkgrey",
+    "darkkhaki",
+    "darkmagenta",
+    "darkolivegreen",
+    "darkorange",
+    "darkorchid",
+    "darkred",
+    "darksalmon",
+    "darkseagreen",
+    "darkslateblue",
+    "darkslategray",
+    "darkslategrey",
+    "darkturquoise",
+    "darkviolet",
+    "deeppink",
+    "deepskyblue",
+    "dimgray",
+    "dimgrey",
+    "dodgerblue",
+    "firebrick",
+    "floralwhite",
+    "forestgreen",
+    "fuchsia",
+    "gainsboro",
+    "ghostwhite",
+    "gold",
+    "goldenrod",
+    "gray",
+    "green",
+    "greenyellow",
+    "grey",
+    "honeydew",
+    "hotpink",
+    "indianred",
+    "indigo",
+    "ivory",
+    "khaki",
+    "lavender",
+    "lavenderblush",
+    "lawngreen",
+    "lemonchiffon",
+    "lightblue",
+    "lightcoral",
+    "lightcyan",
+    "lightgoldenrodyellow",
+    "lightgray",
+    "lightgreen",
+    "lightgrey",
+    "lightpink",
+    "lightsalmon",
+    "lightseagreen",
+    "lightskyblue",
+    "lightslategray",
+    "lightslategrey",
+    "lightsteelblue",
+    "lightyellow",
+    "lime",
+    "limegreen",
+    "linen",
+    "magenta",
+    "maroon",
+    "mediumaquamarine",
+    "mediumblue",
+    "mediumorchid",
+    "mediumpurple",
+    "mediumseagreen",
+    "mediumslateblue",
+    "mediumspringgreen",
+    "mediumturquoise",
+    "mediumvioletred",
+    "midnightblue",
+    "mintcream",
+    "mistyrose",
+    "moccasin",
+    "navajowhite",
+    "navy",
+    "oldlace",
+    "olive",
+    "olivedrab",
+    "orange",
+    "orangered",
+    "orchid",
+    "palegoldenrod",
+    "palegreen",
+    "paleturquoise",
+    "palevioletred",
+    "papayawhip",
+    "peachpuff",
+    "peru",
+    "pink",
+    "plum",
+    "powderblue",
+    "purple",
+    "red",
+    "rosybrown",
+    "royalblue",
+    "saddlebrown",
+    "salmon",
+    "sandybrown",
+    "seagreen",
+    "seashell",
+    "sienna",
+    "silver",
+    "skyblue",
+    "slateblue",
+    "slategray",
+    "slategrey",
+    "snow",
+    "springgreen",
+    "steelblue",
+    "tan",
+    "teal",
+    "thistle",
+    "tomato",
+    "turquoise",
+    "violet",
+    "wheat",
+    "white",
+    "whitesmoke",
+    "yellow",
+    "yellowgreen",
+]
+
+prevent_keyboard_exit_error()
+
+
+def save():
+    with open(absolute_path("config.ini"), "w") as config_file:
+        config.write(config_file)
+
+
+def set_section(section, conf):
+    if section in conf:
+        return conf[section]
+    else:
+        conf[section] = {}
+        save()
+        return conf[section]
+
+
+def print_error(option, error):
+    print(f"{TextColor.yellow(option)} - {TextColor.red(error)}")
+    end()
+
+
+def set_option(option, section, attr, default):
+    try:
+        if option in section:
+            return getattr(section, attr)(option)
+        else:
+            section[option] = default
+            save()
+            return getattr(section, attr)(option)
+    except Exception as error:
+        print_error(option, error)
+
+
+@dataclass
+class Config:
+    config.read("config.ini")
+    Overlay = set_section("Overlay", config)
+    Layout = set_section("Layout", config)
+    Colors = set_section("Colors", config)
+
+
+@dataclass
+class ConfigOverlay:
+    hotkey = set_option("hotkey", Config.Overlay, "get", "^!f")
+    if not re.search(hotkey_regex, hotkey):
+        error = (
+            "Invalid hotkey. "
+            "Check this: https://www.autohotkey.com/docs/v1/Hotkeys.htm#Symbols "
+            "The symbols *, ~, $ and UP are not allowed."
+        )
+        print_error("hotkey", error)
+    font_size = set_option("font_size", Config.Overlay, "getint", "18")
+    font_size = font_size if font_size >= 1 else 1
+    font_family = set_option(
+        "font_family", Config.Overlay, "get", "Consolas, monaco, monospace"
+    )
+    font_weight = set_option("font_weight", Config.Overlay, "get", "bold")
+    hp_update_time = set_option("hp_update_time", Config.Overlay, "getfloat", "0.1")
+    hp_update_time = hp_update_time if hp_update_time >= 0.1 else 0.1
+    show_initial_hp = set_option(
+        "show_initial_hp", Config.Overlay, "getboolean", "true"
+    )
+    show_hp_percentage = set_option(
+        "show_hp_percentage", Config.Overlay, "getboolean", "true"
+    )
+    show_small_monsters = set_option(
+        "show_small_monsters", Config.Overlay, "getboolean", "true"
+    )
+
+
+@dataclass
+class ConfigLayout:
+    x = set_option("x", Config.Layout, "getint", "100")
+    x = x if 0 <= x <= 100 else 100
+    y = set_option("y", Config.Layout, "getint", "0")
+    y = y if 0 <= y <= 100 else 100
+    fix_x = set_option("fix_x", Config.Layout, "getint", "0")
+    fix_y = set_option("fix_y", Config.Layout, "getint", "0")
+    align = set_option("align", Config.Layout, "getboolean", "true")
+    orientation = set_option("orientation", Config.Layout, "get", "center")
+    if orientation not in ("center", "left", "right"):
+        error = "It can only be center, left or right"
+        print_error("orientation", error)
+    emu_hide_ui = set_option(
+        "emu_hide_ui", Config.Layout, "getboolean", "false"
+    )
+
+
+@dataclass
+class ConfigColors:
+    text_color = set_option("text_color", Config.Colors, "get", "aquamarine")
+    if text_color not in colors:
+        error = (
+            "Invalid CSS SVG Color. "
+            "Check this: https://upload.wikimedia.org/wikipedia/commons/2/2b/SVG_Recognized_color_keyword_names.svg"
+        )
+        print_error("text_color", error)
+    background_color = set_option(
+        "background_color", Config.Colors, "get", "darkslategray"
+    )
+    if background_color not in colors:
+        error = (
+            "Invalid CSS SVG Color. "
+            "Check this: https://upload.wikimedia.org/wikipedia/commons/2/2b/SVG_Recognized_color_keyword_names.svg"
+        )
+        print_error("background_color", error)
+    text_transparency = set_option("text_transparency", Config.Colors, "getint", "100")
+    text_transparency = text_transparency if 1 <= text_transparency <= 100 else 100
+    background_transparency = set_option("background_transparency", Config.Colors, "getint", "60")
+    background_transparency = (
+        background_transparency if 1 <= background_transparency <= 100 else 60
+    )

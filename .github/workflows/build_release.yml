@@ -1,0 +1,73 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'
+
+      - name: Create virtual environment & Build Artifact
+        run: |
+          python -m venv .venv
+          .venv\Scripts\activate
+          pip install .
+          build
+
+      - name: Compress artifacts on Windows
+        if: runner.os == 'Windows'
+        run: |
+          7z a MHGU-MHXX-HP-Overlay-For-Switch-Emulator-${{ github.ref_name }}.zip ./build/dist/*
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MHGU-MHXX-HP-Overlay-For-Switch-Emulator
+          path: ./*.zip
+          retention-days: 2
+          compression-level: 9
+  Release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: my-artifacts
+          pattern: MHGU-MHXX-HP-Overlay-For-Switch-Emulator*
+          merge-multiple: true
+      - run: ls -R my-artifacts
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create
+          '${{ github.ref_name }}'
+          --repo '${{ github.repository }}'
+          --notes ""
+      - name: Upload artifact signatures to GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: >-
+          gh release upload
+          '${{ github.ref_name }}' my-artifacts/*
+          --repo '${{ github.repository }}'

@@ -1,0 +1,36 @@
+name: Build & Upload Artifacts
+
+on:
+  push:
+    branches: ['main']
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.12'
+
+      - name: Create virtual environment & Build Artifact
+        run: |
+          python -m venv .venv
+          .venv\Scripts\activate
+          pip install .
+          build
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: MHGU-MHXX-HP-Overlay-For-Switch-Emulator
+          path: build/dist/*
+          retention-days: 2
+          compression-level: 9
