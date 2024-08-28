@@ -1,5 +1,4 @@
 import os
-import re
 import sys
 import time
 import signal
@@ -56,6 +55,6 @@ class TextColor:
 
 
 def header():
-    tprint("MHGU-MHXX HP Overlay\n", font="tarty1")
+    tprint("MHGU HP Overlay\n", font="tarty1")
     exit_hotkey = TextColor.yellow("Ctrl + C")
     print(f"Exit with {exit_hotkey} or close the application.\n")
