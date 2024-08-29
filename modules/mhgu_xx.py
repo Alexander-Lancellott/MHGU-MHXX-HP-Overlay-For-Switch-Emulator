@@ -204,41 +204,26 @@ def scan_aob_batched(
     return large_monster_results + small_monster_results
 
 
-def get_base_address(process_name, is_xx):
+def get_base_address(process_name):
     if process_name.lower() == "ryujinx.exe":
-        region_address = scanmodule.get_regions(process_name, 0x7EE00000)
+        region_address = scanmodule.get_regions(process_name, 0xE955000)
         if region_address:
-            if is_xx:
-                return region_address + 0x10263000
-            return region_address + 0x10252000
-
+            return region_address + 0x4052000
         return None
-    if is_xx:
-        return scanmodule.get_regions(process_name, 0x9BAE000)
-    return scanmodule.get_regions(process_name, 0x9BBF000)
+    region_address = scanmodule.get_regions(process_name, 0x9BBF000)
+    if not region_address:
+        region_address = scanmodule.get_regions(process_name, 0x9BAE000)
+    return region_address
 
 
-def get_data(pid, base_address, is_xx, only_large_monsters):
+def get_data(pid, base_address, only_large_monsters):
     process_handle = pymem.process.open(pid)
-    #pattern = "22 ?? 01 ?? 0F 18"
-    pattern = "?? ?? 01 ?? 0F 18 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 3F 20 00 00 00 00 00 00 00"
-    if is_xx:
-        pattern = "?? ?? 01 ?? 0F 18 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 40 20 00 00 00 00 00 00 00"
-    #patterns = ["01 00 00 00 00 00 00 00 00 ?? ?? 01 ?? 0F 18 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 3F 20 00 00 00 00 00 00 00"]
-    #patterns = ["22 ?? 01 ?? 0F 18", "2A ?? 01 ?? 0F 18"]
-
+    pattern = "?? ?? 01 ?? 0F 18 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 20 00 00 00 00 00 00 00"
     scan_size = 0x6000000  # 0x9BBF000 or 7BBF000
     if process_handle:
         return scan_aob_batched(process_handle, base_address, pattern, scan_size, only_large_monsters)
     else:
         return []
-
-
-def validate_not_responding(win_array, expression):
-    for window in win_array:
-        if re.search(expression, window.title):
-            return True
-    return False
 
 
 if __name__ == "__main__":
@@ -259,7 +244,6 @@ if __name__ == "__main__":
             if win:
                 if re.search("XX", win.title):
                     is_xx = True
-                base_address = get_base_address(win.process_name, is_xx)
                 not_responding2 = ahk.find_window(
                     title=yuzu_target_window_title + not_responding_title, title_match_mode="RegEx"
                 )
@@ -267,15 +251,13 @@ if __name__ == "__main__":
                     win2 = ahk.find_window(title=yuzu_target_window_title, title_match_mode="RegEx")
                     if win2:
                         win = win2
-        print(base_address)
-        try:
-            monsters = get_data(win.pid, base_address, is_xx, True)
+        if win:
+            base_address = get_base_address(win.process_name)
+            monsters = get_data(win.pid, base_address, True)
             monster_names = {**Monsters.large_monsters, **Monsters.small_monsters}
             for monster in monsters:
                 if monster[2] > 5:
                     print([monster_names[monster[0]], *monster[1::]])
-        except (Exception,):
-            pass
         end = time.time()
         print(end - start)
     Test()

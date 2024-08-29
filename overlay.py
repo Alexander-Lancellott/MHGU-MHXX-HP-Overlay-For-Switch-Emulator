@@ -23,17 +23,16 @@ from ahk_wmutil import wmutil_extension
 class DataFetcher(QThread):
     data_fetched = Signal(list)
 
-    def __init__(self, pid, base_address, is_xx, show_small_monsters, running):
+    def __init__(self, pid, base_address, show_small_monsters, running):
         super().__init__()
         self.pid = pid
         self.running = running
         self.base_address = base_address
-        self.is_xx = is_xx
         self.show_small_monsters = show_small_monsters
 
     def run(self):
         while True:
-            data = get_data(self.pid, self.base_address, self.is_xx, self.show_small_monsters)
+            data = get_data(self.pid, self.base_address, self.show_small_monsters)
             self.data_fetched.emit(data)
             self.msleep(round(ConfigOverlay.hp_update_time * 1000))
 
@@ -179,7 +178,7 @@ class Overlay(QWidget):
 
     def start_data_fetcher(self, labels, label_layouts):
         self.data_fetcher = DataFetcher(
-            self.pid, self.base_address, self.is_xx, self.show_small_monsters, self.running
+            self.pid, self.base_address, self.show_small_monsters, self.running
         )
         self.data_fetcher.data_fetched.connect(
             lambda data: self.update_show(data, labels, label_layouts)
@@ -259,7 +258,7 @@ class Overlay(QWidget):
                 sys.exit()
         else:
             if not self.base_address:
-                self.base_address = get_base_address(self.process_name, self.is_xx)
+                self.base_address = get_base_address(self.process_name)
                 if self.base_address and self.base_address > 0:
                     self.start_data_fetcher(labels, label_layouts)
             if not self.running:
