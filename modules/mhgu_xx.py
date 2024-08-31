@@ -216,12 +216,14 @@ def get_base_address(process_name):
     return region_address
 
 
-def get_data(pid, base_address, only_large_monsters):
+def get_data(pid, base_address, only_large_monsters, workers=2):
     process_handle = pymem.process.open(pid)
     pattern = "?? ?? 01 ?? 0F 18 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 20 00 00 00 00 00 00 00"
     scan_size = 0x6000000  # 0x9BBF000 or 7BBF000
     if process_handle:
-        return scan_aob_batched(process_handle, base_address, pattern, scan_size, only_large_monsters)
+        return scan_aob_batched(
+            process_handle, base_address, pattern, scan_size, only_large_monsters, max_workers=workers
+        )
     else:
         return []
 

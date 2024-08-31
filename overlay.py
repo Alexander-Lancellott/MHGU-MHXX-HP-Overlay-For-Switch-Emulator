@@ -23,16 +23,17 @@ from ahk_wmutil import wmutil_extension
 class DataFetcher(QThread):
     data_fetched = Signal(list)
 
-    def __init__(self, pid, base_address, show_small_monsters, running):
+    def __init__(self, pid, base_address, show_small_monsters, running, max_workers):
         super().__init__()
         self.pid = pid
         self.running = running
         self.base_address = base_address
         self.show_small_monsters = show_small_monsters
+        self.max_workers = max_workers
 
     def run(self):
         while True:
-            data = get_data(self.pid, self.base_address, self.show_small_monsters)
+            data = get_data(self.pid, self.base_address, self.show_small_monsters, self.max_workers)
             self.data_fetched.emit(data)
             self.msleep(round(ConfigOverlay.hp_update_time * 1000))
 
@@ -57,6 +58,7 @@ class Overlay(QWidget):
         self.timeout = (20 * 60) + 1  # 20 minutes
         self.counter = self.timeout
         self.timeout_start = time.time()
+        self.max_workers = ConfigOverlay.max_workers
         self.emu_hide_ui = ConfigLayout.emu_hide_ui
         self.orientation = ConfigLayout.orientation
         self.x = ConfigLayout.x
@@ -178,7 +180,7 @@ class Overlay(QWidget):
 
     def start_data_fetcher(self, labels, label_layouts):
         self.data_fetcher = DataFetcher(
-            self.pid, self.base_address, self.show_small_monsters, self.running
+            self.pid, self.base_address, self.show_small_monsters, self.running, self.max_workers
         )
         self.data_fetcher.data_fetched.connect(
             lambda data: self.update_show(data, labels, label_layouts)
@@ -186,30 +188,28 @@ class Overlay(QWidget):
         self.data_fetcher.start()
 
     def get_window(self, ahk, target_window_title, not_responding_title, yuzu_target_window_title):
-        hide_ui = False
         self.is_xx = False
         win = None
-        not_responding = ahk.find_window(
+        win_not_responding = ahk.find_window(
             title=target_window_title + not_responding_title, title_match_mode="RegEx"
         )
-        if not not_responding:
+        if not win_not_responding:
             win = ahk.find_window(title=target_window_title, title_match_mode="RegEx")
             if win:
                 if re.search("XX", win.title):
                     self.is_xx = True
-                not_responding2 = ahk.find_window(
+                win_not_responding2 = ahk.find_window(
                     title=yuzu_target_window_title + not_responding_title, title_match_mode="RegEx"
                 )
-                if not not_responding2:
+                if not win_not_responding2:
                     win2 = ahk.find_window(title=yuzu_target_window_title, title_match_mode="RegEx")
                     if win2:
-                        hide_ui = True
                         win = win2
-        return win, hide_ui
+        return win
 
     def toggle_borderless_screen(self, ahk, target_window_title, not_responding_title, yuzu_target_window_title):
         try:
-            win, _ = self.get_window(ahk, target_window_title, not_responding_title, yuzu_target_window_title)
+            win = self.get_window(ahk, target_window_title, not_responding_title, yuzu_target_window_title)
             monitor = win.get_monitor()
             target = win.get_position()
             win.set_style("^0xC00000")
@@ -310,9 +310,10 @@ class Overlay(QWidget):
 
     def update_position(self, ahk, layout, target_window_title, not_responding_title, yuzu_target_window_title):
         try:
-            win, hide_ui = self.get_window(ahk, target_window_title, not_responding_title, yuzu_target_window_title)
+            win = self.get_window(ahk, target_window_title, not_responding_title, yuzu_target_window_title)
             target = win.get_position()
             monitor = win.get_monitor()
+            hide_ui = not re.search("(GENERATIONS ULTIMATE|XX)", win.title)
             self.process_name = win.process_name
             self.pid = win.pid
             self.is_ryujinx = self.process_name.lower() == "ryujinx.exe"

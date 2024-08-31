@@ -213,7 +213,9 @@ class ConfigOverlay:
         "font_family", Config.Overlay, "get", "Consolas, monaco, monospace"
     )
     font_weight = set_option("font_weight", Config.Overlay, "get", "bold")
-    hp_update_time = set_option("hp_update_time", Config.Overlay, "getfloat", "0.1")
+    max_workers = set_option("max_workers", Config.Overlay, "getint", "2")
+    max_workers = max_workers if 1 <= max_workers <= 16 else 2
+    hp_update_time = set_option("hp_update_time", Config.Overlay, "getfloat", "0.8")
     hp_update_time = hp_update_time if hp_update_time >= 0.1 else 0.1
     show_initial_hp = set_option(
         "show_initial_hp", Config.Overlay, "getboolean", "true"
