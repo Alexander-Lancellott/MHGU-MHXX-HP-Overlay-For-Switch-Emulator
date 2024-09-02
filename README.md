@@ -1,4 +1,4 @@
-<h1 align="center">MHGU-MHXX-Overlay-For-Switch-Emulator</h1>
+<h1 align="center">MHGU-MHXX-HP-Overlay-For-Switch-Emulator</h1>
 
 <div align="center">
 
