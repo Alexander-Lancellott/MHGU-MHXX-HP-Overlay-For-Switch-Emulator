@@ -9,7 +9,7 @@
 
 ## Description
 
-A simple open-source HP overlay that I've developed for MHGU and MHXX Switch Version in Python. This project is a port of another one I previously created called [MH-HP-Overlay-For-3DS-Emulator](https://github.com/Alexander-Lancellott/MH-HP-Overlay-For-3DS-Emulator), but this time it's designed to work with Switch emulators, such as [Ryujinx](https://ryujinx.org/download) and Y*** or S***, on their PC (Windows) versions.
+A simple open-source HP overlay that I've developed for MHGU and MHXX Switch Version in Python. This project is a port of another one I previously created called [MH-HP-Overlay-For-3DS-Emulator](https://github.com/Alexander-Lancellott/MH-HP-Overlay-For-3DS-Emulator), but this time it's designed to work with Switch emulators, such as [Ryujinx](https://ryujinx.org/download) and Y\*\*\*, Suda\*\*\* or S\*\*\*, on their PC (Windows) versions.
 
 This overlay uses an AOB (Array of Bytes) scan to locate the memory addresses where each monster's HP values are stored. In my previous project, I was able to use pointers, which is much more efficient and less prone to errors. However, for this project, I had to resort to using AOB scanning because Ryujinx and Y*** do not provide tools to access the game's emulated memory in an orderly and easy manner, as Citra does with a Python script developed by the Citra team that allows external access to the emulated memory with minimal complications. As mentioned earlier, AOB scanning is inefficient because it scans every byte of the entire emulator's memory to find a match for the given pattern. To mitigate this, I reduced the load of this scan by first identifying the memory region where the monsters' HP values are stored and limiting the scan size to that specific chunk of memory instead of scanning the entire emulator memory. Additionally, to minimize the impact on CPU and RAM performance, I created a Python module written in C, which not only reduced the performance impact but also increased execution speed.
 
@@ -27,8 +27,19 @@ I think I've managed to make the overlay compatible with the base version and th
 Below, I also include a list of the version of each emulator in which I have confirmed the overlay works correctly.
 
 - Ryujinx 1.1.1380 & LDN 3.1.3
+- Suda*** 1.0.7
 - Y*** EA 4176
 - S*** 0.0.3
+
+## High DPI Scaling (optional, only if you notice it)
+
+If your monitor has a resolution higher than 1080p, it's likely you're using a DPI scale above 100%. In this case, the initial position of the overlay may not be the same as when using 100% scaling. To mitigate this, you have three options:
+
+- Set your screen scaling to 100%. You can follow this [guide](https://support.microsoft.com/en-us/windows/view-display-settings-in-windows-37f0e05e-98a9-474c-317a-e85422daa8bb).
+
+- If setting your monitor’s scaling to 100% is not ideal for you, then disable automatic DPI scaling for Ryujinx. To do this, right-click on `Ryujinx.exe`, select Properties, then go to the Compatibility tab. You'll see a checkbox that says, **"Override high DPI scaling behavior."** A drop-down menu will let you choose one of three options. Select `System` or `System Enhanced`. You can find a helpful guide [here](https://www.majorgeeks.com/content/page/how_to_change_dpi_scaling_settings_in_windows.html).
+
+- If neither of the previous options suits you, use the [Fix X & Fix Y](#fix-x--fix-y) options to adjust the overlay more precisely and correct the slight misalignment.
 
 ## How to use
 
@@ -134,6 +145,43 @@ Remember to close and reopen the overlay after making changes to the `config.ini
     <td>string</td>
     <td>
       Must be valid hotkey, check this: https://www.autohotkey.com/docs/v1/Hotkeys.htm#Symbols
+    </td>
+  </tr>
+</table>
+
+### Debugger
+
+If the `debugger` option in the `config.ini` file is set to `true`, a .log file will be generated where all application logs will be stored. This option is intended solely for testing and troubleshooting, so its default value is `false`.
+
+<table>
+  <tr align="center">
+    <td>
+      <strong>Option</strong>
+    </td>
+    <td>
+      <strong style="white-space: nowrap; ">
+        Default value
+      </strong>
+    </td>
+    <td>
+      <strong>Type</strong>
+    </td>
+    <td>
+      <strong>Observation</strong>
+    </td>
+  </tr>
+  <tr align="center">
+    <td>
+      debugger
+    </td>
+    <td>
+      false
+    </td>
+    <td>
+      boolean
+    </td>
+    <td>
+      This is case-insensitive and recognizes boolean values from 'yes'/'no', 'on'/'off', 'true'/'false' and '1'/'0'
     </td>
   </tr>
 </table>
@@ -772,5 +820,6 @@ You will find the `build` in the `build/dist` folder
 - Pymem - v1.13.1
 - cx_Freeze - last
 - cursor - v1.3.5
+- pywin32 - v306
 - numpy - last
 - art - v6.2

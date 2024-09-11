@@ -6,7 +6,7 @@ setup(
     name="MHGU-MHXX-HP-Overlay-For-Switch-Emulator",
     author="Alexander-Lancellott",
     author_email="alejandrov.lancellotti@gmail.com",
-    version="1.0.0",
+    version="1.0.1",
     packages=find_packages(),
     install_requires=[
         "ahk[binary]==1.8.0",
@@ -15,6 +15,7 @@ setup(
         "PySide6==6.7.2",
         "Pymem==1.13.1",
         "cursor==1.3.5",
+        "pywin32==306",
         "numpy",
         "cx_Freeze",
         "art==6.2",

@@ -1,8 +1,10 @@
-import math
+import os
 import re
 import sys
 import time
+import math
 import cursor
+import win32gui
 from ahk import AHK, Position
 from PySide6.QtCore import QTimer, Qt, QThread, Signal
 from PySide6.QtGui import QColorConstants
@@ -11,11 +13,15 @@ from modules.config import ConfigOverlay, ConfigLayout, ConfigColors
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QSizePolicy
 from modules.utils import (
     TextColor,
+    PassiveTimer,
     prevent_keyboard_exit_error,
     rgba_int,
     clear_screen,
     header,
-    max_monsters
+    max_monsters,
+    logger_init,
+    log_timer,
+    log_error,
 )
 from ahk_wmutil import wmutil_extension
 
@@ -70,13 +76,20 @@ class Overlay(QWidget):
         self.hotkey = ConfigOverlay.hotkey
         self.data_fetcher = None
         self.hp_update_time = round(ConfigOverlay.hp_update_time * 1000)
+        self.debugger = ConfigOverlay.debugger
+        self.pt = PassiveTimer()
         self.initialize_ui()
 
     def initialize_ui(self):
         target_window_title = "MONSTER HUNTER (GENERATIONS ULTIMATE|XX Nintendo Switch Ver.)[\\w\\W\\s]+"
         not_responding_title = " \\([\\w\\s]+\\)$"
-        yuzu_target_window_title = "(yuzu|suyu)[\\w\\W\\s]+\\| (HEAD|dev)-[\\w\\W\\s]+"
+        yuzu_target_window_title = "(yuzu|suyu|sudachi)[\\w\\W\\s]+\\| (HEAD|dev|sudachi)-[\\w\\W\\s]+"
         ahk = AHK(version="v2", extensions=[wmutil_extension])
+
+        if self.debugger:
+            logger_init(".log")
+            self.pt.start(5)
+
         self.setWindowTitle("Overlay")
         self.setWindowFlags(
             Qt.WindowType.Tool
@@ -92,6 +105,7 @@ class Overlay(QWidget):
             font-weight: {ConfigOverlay.font_weight};
             font-size: {ConfigOverlay.font_size}px;
             border-radius: 5px;
+            margin: 0 0 5px;
             """
         )
 
@@ -207,34 +221,49 @@ class Overlay(QWidget):
                         win = win2
         return win
 
+    @staticmethod
+    def get_window_position(hwnd):
+        rect = win32gui.GetWindowRect(hwnd)
+        x = rect[0]
+        y = rect[1]
+        width = rect[2] - rect[0]
+        height = rect[3] - rect[1]
+        return Position(x, y, width, height)
+
     def toggle_borderless_screen(self, ahk, target_window_title, not_responding_title, yuzu_target_window_title):
         try:
             win = self.get_window(ahk, target_window_title, not_responding_title, yuzu_target_window_title)
             monitor = win.get_monitor()
-            target = win.get_position()
+            target = self.get_window_position(win.id)
             win.set_style("^0xC00000")
             win.set_style("^0x40000")
             self.is_borderless = monitor.size[0] <= target.width and monitor.size[1] - 1 <= target.height
             if self.is_borderless:
                 win.set_style("+0xC00000")
                 win.set_style("+0x40000")
-                win.move(
-                    x=self.initial_window_state.x,
-                    y=self.initial_window_state.y,
-                    width=self.initial_window_state.width,
-                    height=self.initial_window_state.height,
+                win32gui.MoveWindow(
+                    win.id,
+                    self.initial_window_state.x,
+                    self.initial_window_state.y,
+                    self.initial_window_state.width,
+                    self.initial_window_state.height,
+                    True
                 )
             else:
                 self.initial_window_state = target
                 win.set_style("-0xC00000")
                 win.set_style("-0x40000")
-                win.move(
-                    x=monitor.position[0],
-                    y=monitor.position[1],
-                    width=monitor.size[0],
-                    height=monitor.size[1] + 1,
+                win32gui.MoveWindow(
+                    win.id,
+                    monitor.position[0],
+                    monitor.position[1],
+                    monitor.size[0],
+                    monitor.size[1] + 1,
+                    True
                 )
-        except (Exception,):
+        except Exception as error:
+            if self.debugger:
+                log_error(f'Toggle Borderless Error: {error}')
             pass
 
     def wait_init_game(self, labels, label_layouts):
@@ -311,8 +340,9 @@ class Overlay(QWidget):
     def update_position(self, ahk, layout, target_window_title, not_responding_title, yuzu_target_window_title):
         try:
             win = self.get_window(ahk, target_window_title, not_responding_title, yuzu_target_window_title)
-            target = win.get_position()
+            target = self.get_window_position(win.id)
             monitor = win.get_monitor()
+            scale_factor = monitor.scale_factor
             hide_ui = not re.search("(GENERATIONS ULTIMATE|XX)", win.title)
             self.process_name = win.process_name
             self.pid = win.pid
@@ -320,41 +350,54 @@ class Overlay(QWidget):
             self.resize(self.minimumSizeHint())
             self.is_borderless = monitor.size[0] <= target.width and monitor.size[1] - 1 <= target.height
 
-            margin_top = 34
-            margin_bottom = 11
-            margin_left = 11
-            margin_right = 11
+            margin_top = 35 * scale_factor
+            margin_bottom = 11 * scale_factor
+            margin_left = 10 * scale_factor
+            margin_right = 10 * scale_factor
 
             if self.is_borderless:
-                margin_top = 4
-                margin_bottom = 6
-                margin_left = 4
-                margin_right = 4
+                margin_top = 4 * scale_factor
+                margin_bottom = 6 * scale_factor
+                margin_left = 4 * scale_factor
+                margin_right = 4 * scale_factor
 
             if not self.emu_hide_ui and not hide_ui:
                 if self.is_ryujinx:
-                    margin_top = 69
-                    margin_bottom = 33
+                    margin_top = 69 * scale_factor
+                    margin_bottom = 33 * scale_factor
                     if self.is_borderless:
-                        margin_top = 38
-                        margin_bottom = 25
+                        margin_top = 38 * scale_factor
+                        margin_bottom = 25 * scale_factor
                 else:
-                    margin_top = 55
-                    margin_bottom = 32
+                    margin_top = 55 * scale_factor
+                    margin_bottom = 32 * scale_factor
                     if self.is_borderless:
-                        margin_top = 25
-                        margin_bottom = 25
+                        margin_top = 25 * scale_factor
+                        margin_bottom = 25 * scale_factor
 
             offset_x = (target.x + (target.width - self.geometry().width()) * self.x / 100) + self.fix_offset["x"]
             offset_y = (target.y + (target.height - self.geometry().height()) * self.y / 100) + self.fix_offset["y"]
             layout.setContentsMargins(margin_left, margin_top, margin_right, margin_bottom)
+            if self.debugger:
+                log_timer(self.pt, [
+                    dict(type="info", msg=f'Window Title: {win.title}'),
+                    dict(type="info", msg=f'Window Target: {target}'),
+                    dict(type="info", msg=f'Monitor: {monitor.position} {monitor.size}'),
+                    dict(type="info", msg=f'Borderless: {self.is_borderless}'),
+                    dict(type="info", msg=f'Offsets: {offset_x} {offset_y}'),
+                ])
             self.move(offset_x, offset_y)
             self.is_open_window = True
-        except (Exception,):
+        except Exception as error:
+            if self.debugger:
+                log_timer(self.pt, [
+                    dict(type="error", msg=f'Update Position Error: {error}'),
+                ])
             self.is_open_window = False
 
 
 if __name__ == "__main__":
+    os.environ["QT_FONT_DPI"] = '1'
     prevent_keyboard_exit_error()
     cursor.hide()
     header()
