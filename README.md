@@ -1,4 +1,4 @@
-<h1 align="center">MHGU-MHXX-Overlay-For-Switch-Emulator</h1>
+<h1 align="center">MHGU-MHXX-HP-Overlay-For-Switch-Emulator</h1>
 
 <div align="center">
 
@@ -47,11 +47,11 @@ To use the overlay, simply open the `MHGU-MHXX-HP-Overlay.exe` file.
 
 If one of the games from the [compatibility list](#compatibility) isn't running in the emulator, you will see a red message in the overlay console saying **No game running** and a countdown starting from 20 minutes. When the countdown reaches zero, the overlay will automatically close to save resources.
 
-![No game running](https://res.cloudinary.com/dms5y8rug/image/upload/c_thumb,g_face,q_auto:best/MH-HP-Overlay/no_game_running_2.webp)
+![No game running](https://res.cloudinary.com/dms5y8rug/image/upload/c_thumb,g_face,q_auto:best/MH-HP-Overlay/no_game_running_3.webp)
 
 Otherwise, if one of the games from the [compatibility list](#compatibility) is running in the emulator, you will see a green message in the overlay console indicating which of the compatible games is currently running.
 
-![Game running](https://res.cloudinary.com/dms5y8rug/image/upload/c_thumb,g_face,q_auto:best/MH-HP-Overlay/game_running_2.webp)
+![Game running](https://res.cloudinary.com/dms5y8rug/image/upload/c_thumb,g_face,q_auto:best/MH-HP-Overlay/game_running_3.webp)
 
 If everything works correctly, upon starting a hunting mission, you should see `labels` arranged one below the other, displaying the monster's name along with its HP in the top right corner of the game window.
 
