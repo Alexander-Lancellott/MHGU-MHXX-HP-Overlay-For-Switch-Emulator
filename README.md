@@ -17,6 +17,12 @@ I am not sure if the specific memory region used to limit the scan might change 
 
 Although I've conducted numerous tests, the overlay may still contain some bugs that I haven't detected. If you encounter any issues, I would appreciate it if you could report them by opening an issue and providing any evidence that allows for replication.
 
+You can support me by donating! I’d really appreciate it. But either way, thank you for using this mod!
+
+<a href='https://ko-fi.com/B0B115WKYH' target='_blank'>
+  <img height='45' style='border:0px;height:45px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' />
+</a>
+
 ## Compatibility
 
 I think I've managed to make the overlay compatible with the base version and the latest update of MHGU and MHXX. Below is a list of the versions where I tested and confirmed that the overlay works correctly:
