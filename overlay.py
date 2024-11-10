@@ -6,7 +6,7 @@ import math
 import cursor
 import win32gui
 from ahk import AHK, Position
-from PySide6.QtCore import QTimer, Qt, QThread, Signal
+from PySide6.QtCore import QTimer, Qt, QThread, Signal, qInstallMessageHandler
 from PySide6.QtGui import QColorConstants
 from modules.mhgu_xx import get_data, get_base_address, Monsters
 from modules.config import ConfigOverlay, ConfigLayout, ConfigColors
@@ -16,6 +16,7 @@ from modules.utils import (
     PassiveTimer,
     prevent_keyboard_exit_error,
     rgba_int,
+    get_crown,
     clear_screen,
     header,
     max_monsters,
@@ -72,6 +73,8 @@ class Overlay(QWidget):
         self.show_initial_hp = ConfigOverlay.show_initial_hp
         self.show_hp_percentage = ConfigOverlay.show_hp_percentage
         self.show_small_monsters = ConfigOverlay.show_small_monsters,
+        self.show_size_multiplier = ConfigOverlay.show_size_multiplier
+        self.show_crown = ConfigOverlay.show_crown
         self.fix_offset = dict(x=ConfigLayout.fix_x, y=ConfigLayout.fix_y)
         self.hotkey = ConfigOverlay.hotkey
         self.data_fetcher = None
@@ -111,11 +114,11 @@ class Overlay(QWidget):
 
         color = rgba_int(
             getattr(QColorConstants.Svg, ConfigColors.text_color).rgb(),
-            ConfigColors.text_transparency,
+            ConfigColors.text_opacity,
         )
         background_color = rgba_int(
             getattr(QColorConstants.Svg, ConfigColors.background_color).rgb(),
-            ConfigColors.background_transparency,
+            ConfigColors.background_opacity,
         )
 
         labels = []
@@ -304,13 +307,20 @@ class Overlay(QWidget):
             if len(data) > index:
                 label_layout = label_layouts[index]
                 monster = data[index]
-                large_monster_name = Monsters.large_monsters.get(monster[0])
+                large_monster = Monsters.large_monsters.get(monster[0])
                 small_monster_name = Monsters.small_monsters.get(monster[0])
                 hp = monster[1]
                 initial_hp = monster[2]
                 if initial_hp > 5:
-                    if large_monster_name and hp < 45000:
-                        text = f"{large_monster_name}:"
+                    if large_monster and hp < 45000:
+                        text = ""
+                        size_multiplier = None
+                        if self.show_size_multiplier:
+                            size_multiplier = monster[3]
+                            text += f"({size_multiplier}) "
+                        text += f"{large_monster["name"]}{get_crown(
+                            size_multiplier, large_monster["crowns"], self.show_crown
+                        )}:"
                         if self.show_hp_percentage:
                             text += f" {math.ceil((hp / initial_hp) * 100)}% |"
                         text += f" {hp}"
@@ -398,6 +408,7 @@ class Overlay(QWidget):
 
 if __name__ == "__main__":
     os.environ["QT_FONT_DPI"] = '1'
+    qInstallMessageHandler(object)
     prevent_keyboard_exit_error()
     cursor.hide()
     header()

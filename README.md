@@ -428,6 +428,63 @@ Remember to close and reopen the overlay after making changes to the `config.ini
   </tr>
 </table>
 
+### Show Size Multiplier & Crown
+
+The `show_size_multiplier` and `show_crown` options in the `config.ini` file allow you to show or hide the size multiplier and crown of each monster.
+
+<div align="center">
+
+![Size Multiplier & Crown](https://res.cloudinary.com/dms5y8rug/image/upload/c_thumb,g_face,q_auto:best/MH-HP-Overlay/size_multiplier_and_crown.png)
+
+</div>
+
+<table>
+  <tr align="center">
+    <td>
+      <strong>Option</strong>
+    </td>
+    <td>
+      <strong style="white-space: nowrap; ">
+        Default value
+      </strong>
+    </td>
+    <td>
+      <strong>Type</strong>
+    </td>
+    <td>
+      <strong>Observation</strong>
+    </td>
+  </tr>
+  <tr align="center">
+    <td>
+      show_size_multiplier
+    </td>
+    <td>
+      true
+    </td>
+    <td>
+      boolean
+    </td>
+    <td>
+      This is case-insensitive and recognizes boolean values from 'yes'/'no', 'on'/'off', 'true'/'false' and '1'/'0'
+    </td>
+  </tr>
+  <tr align="center">
+    <td>
+      show_crown
+    </td>
+    <td>
+      true
+    </td>
+    <td>
+      boolean
+    </td>
+    <td>
+      This is case-insensitive and recognizes boolean values from 'yes'/'no', 'on'/'off', 'true'/'false' and '1'/'0'
+    </td>
+  </tr>
+</table>
+
 ### Position (X & Y)
 
 The `x` and `y` options within the `config.ini` file allow you to adjust the position of the overlay using Cartesian coordinates. These values are relative and percentage-based to the size of the target window, with a minimum range of `0` and maximum of `100` for each coordinate.
@@ -748,9 +805,9 @@ Within the `config.ini` file, you can customize the color of text and background
 <br>&nbsp;
 - `background_color`: Defines the background color of the `labels` in the overlay. Similar to text_color, you can use any valid color name from **CSS SVG Colors**.
 <br>&nbsp;
-- `text_transparency`: Controls the opacity of the text within the `labels`.
+- `text_opacity`: Controls the opacity of the text within the `labels`.
 <br>&nbsp;
-- `background_transparency`: Controls the opacity of the background of the `labels`.
+- `background_opacity`: Controls the opacity of the background of the `labels`.
 
 Adjust these values according to your preferences to customize the visual appearance of the overlay.
 
@@ -790,13 +847,13 @@ Remember to close and reopen the overlay after making changes in the `config.ini
     </td>
   </tr>
   <tr align="center">
-    <td>text_transparency</td>
+    <td>text_opacity</td>
     <td>100</td>
     <td>integer</td>
     <td>Must be greater than or equal to 1 and less than or equal to 100</td>
   </tr>
   <tr align="center">
-    <td>background_transparency</td>
+    <td>background_opacity</td>
     <td>60</td>
     <td>integer</td>
     <td>Must be greater than or equal to 1 and less than or equal to 100</td>

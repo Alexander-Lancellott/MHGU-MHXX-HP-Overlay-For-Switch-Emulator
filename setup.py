@@ -6,7 +6,7 @@ setup(
     name="MHGU-MHXX-HP-Overlay-For-Switch-Emulator",
     author="Alexander-Lancellott",
     author_email="alejandrov.lancellotti@gmail.com",
-    version="1.0.1",
+    version="1.1.0",
     packages=find_packages(),
     install_requires=[
         "ahk[binary]==1.8.0",

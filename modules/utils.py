@@ -64,6 +64,18 @@ def header():
     print(f"Exit with {exit_hotkey} or close the application.\n")
 
 
+def get_crown(size, crowns, enable):
+    if not enable or crowns["g"] is None:
+        return ""
+    if crowns["g"] <= size:
+        return " Gold"
+    if crowns["s"] <= size:
+        return " Silver"
+    if crowns["m"] >= size:
+        return " Mini"
+    return ""
+
+
 class PassiveTimer:
     def __init__(self):
         self.end_time = None

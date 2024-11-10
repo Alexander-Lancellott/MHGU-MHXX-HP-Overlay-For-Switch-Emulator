@@ -227,6 +227,12 @@ class ConfigOverlay:
     show_small_monsters = set_option(
         "show_small_monsters", Config.Overlay, "getboolean", "true"
     )
+    show_size_multiplier = set_option(
+        "show_size_multiplier", Config.Overlay, "getboolean", "true"
+    )
+    show_crown = set_option(
+        "show_crown", Config.Overlay, "getboolean", "true"
+    )
 
 
 @dataclass
@@ -265,9 +271,9 @@ class ConfigColors:
             "Check this: https://upload.wikimedia.org/wikipedia/commons/2/2b/SVG_Recognized_color_keyword_names.svg"
         )
         print_error("background_color", error)
-    text_transparency = set_option("text_transparency", Config.Colors, "getint", "100")
-    text_transparency = text_transparency if 1 <= text_transparency <= 100 else 100
-    background_transparency = set_option("background_transparency", Config.Colors, "getint", "60")
-    background_transparency = (
-        background_transparency if 1 <= background_transparency <= 100 else 60
+    text_opacity = set_option("text_opacity", Config.Colors, "getint", "100")
+    text_opacity = text_opacity if 1 <= text_opacity <= 100 else 100
+    background_opacity = set_option("background_opacity", Config.Colors, "getint", "60")
+    background_opacity = (
+        background_opacity if 1 <= background_opacity <= 100 else 60
     )
