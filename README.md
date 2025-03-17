@@ -982,7 +982,7 @@ Remember to close and reopen the overlay after making changes in the `config.ini
   </tr>
   <tr align="center">
     <td>abnormal_status_text_color</td>
-    <td>gold</td>
+    <td>yellow</td>
     <td>string</td>
     <td>
       Must be a <a href="https://upload.wikimedia.org/wikipedia/commons/2/2b/SVG_Recognized_color_keyword_names.svg">CSS SVG Color</a>
@@ -990,7 +990,7 @@ Remember to close and reopen the overlay after making changes in the `config.ini
   </tr>
   <tr align="center">
     <td>abnormal_status_background_color</td>
-    <td>limegreen</td>
+    <td>green</td>
     <td>string</td>
     <td>
       Must be a <a href="https://upload.wikimedia.org/wikipedia/commons/2/2b/SVG_Recognized_color_keyword_names.svg">CSS SVG Color</a>
@@ -1004,7 +1004,7 @@ Remember to close and reopen the overlay after making changes in the `config.ini
   </tr>
   <tr align="center">
     <td>abnormal_status_background_opacity</td>
-    <td>25</td>
+    <td>50</td>
     <td>integer</td>
     <td>Must be greater than or equal to 1 and less than or equal to 100</td>
   </tr>
