@@ -303,7 +303,7 @@ Remember to close and reopen the overlay after making changes to the `config.ini
   </tr>
   <tr align="center">
     <td>hp_update_time</td>
-    <td>0.8</td>
+    <td>0.6</td>
     <td>float</td>
     <td>Must be greater than or equal to 0.1</td>
   </tr>
