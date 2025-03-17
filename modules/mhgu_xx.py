@@ -1,5 +1,6 @@
 import re
 import time
+from math import ceil
 from struct import unpack
 from dataclasses import dataclass
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -473,23 +474,105 @@ def scan_aob_batched(
             for future in as_completed(futures):
                 results.extend(future.result())
 
-        results.sort(key=lambda x: x[0])
+        results.sort(key=lambda x: read_int(process_handle, x[1] - 0x450))
 
         for result in results:
             name = read_int(process_handle, result[0])
             hp = read_int(process_handle, result[1])
             initial_hp = read_int(process_handle, result[2])
-            monster_name = large_monsters.get(name)
-            if monster_name:
+            is_visible = read_int(process_handle, result[1] - 0x17A0, 1) != 0x7 or hp != 0x0
+            if large_monsters.get(name) and is_visible:
+                pointer = result[1]
                 monster_size = int(round(read_float(process_handle, result[1] - 0x1C0) * 100, 2))
-                large_monster_results.append([name, hp, initial_hp, monster_size])
-            elif show_small_monsters:
+                abnormal_status = {}
+
+                def add_abnormal_status(status_name: str, values: list):
+                    if values[1] != 0xFFFF:
+                        abnormal_status.update({
+                            status_name: values,
+                        })
+
+                add_abnormal_status("Poison", [
+                    read_int(process_handle, pointer + 0x5924, 2),
+                    read_int(process_handle, pointer + 0x5930, 2)
+                ])
+                add_abnormal_status("Sleep", [
+                    read_int(process_handle, pointer + 0x5928, 2),
+                    read_int(process_handle, pointer + 0x5926, 2)
+                ])
+                add_abnormal_status("Paralysis", [
+                    read_int(process_handle, pointer + 0x593E, 2),
+                    read_int(process_handle, pointer + 0x593C, 2)
+                ])
+                add_abnormal_status("Dizzy", [
+                    read_int(process_handle, pointer + 0x5A06, 2),
+                    read_int(process_handle, pointer + 0x5A08, 2)
+                ])
+                add_abnormal_status("Exhaust", [
+                    read_int(process_handle, pointer + 0x5A12, 2),
+                    read_int(process_handle, pointer + 0x5A14, 2)
+                ])
+                add_abnormal_status("Jump", [
+                    read_int(process_handle, pointer + 0x5A2A, 2),
+                    read_int(process_handle, pointer + 0x5A2C, 2)
+                ])
+                add_abnormal_status("Blast", [
+                    read_int(process_handle, pointer + 0x5A3A, 2),
+                    read_int(process_handle, pointer + 0x5A38, 2)
+                ])
+                abnormal_status.update({
+                    "Rage": int(ceil(
+                        read_float(process_handle, pointer + 0x1A4) / 60
+                    ))
+                })
+                large_monster_results.append([name, hp, initial_hp, monster_size, abnormal_status, pointer])
+
+            elif small_monsters.get(name) and show_small_monsters and is_visible:
                 monster_name = small_monsters.get(name)
                 if monster_name:
                     small_monster_results.append([name, hp, initial_hp])
     except (Exception,):
         pass
-    return large_monster_results + small_monster_results
+
+    return {
+        "monsters": large_monster_results + small_monster_results,
+        "total": [len(large_monster_results), len(small_monster_results)],
+    }
+
+
+def get_monster_selected(
+        pid,
+        start_address,
+        num_chunks=400,
+        max_workers=2
+):
+    base_address = start_address
+    process_handle = pymem.process.open(pid)
+    pattern = "28 00 00 00 D1"
+    scan_size = 0x5000000
+
+    wildcard = "??"
+    bytes_pattern = bytes(int(byte, 16) if byte != wildcard else 0x00 for byte in pattern.split())
+    pattern_np = np.frombuffer(bytes_pattern, dtype=np.uint8)
+    mask = np.array([0xFF if byte != wildcard else 0x00 for byte in pattern.split()], dtype=np.uint8)
+    chunk_size = scan_size // num_chunks
+
+    results = []
+    with ThreadPoolExecutor(max_workers) as executor:
+        futures = []
+        for i in range(num_chunks):
+            chunk_offset = i * chunk_size
+            memory_chunk = pymem.memory.read_bytes(process_handle, base_address + chunk_offset, chunk_size)
+            futures.append(
+                executor.submit(scanmodule.scan_chunk, memory_chunk, pattern_np, mask, base_address, chunk_offset)
+            )
+
+        for future in as_completed(futures):
+            results.extend(future.result())
+
+    if len(results) > 0:
+        return read_int(process_handle, results[0][1] - 0x175D, 1)
+    return 0
 
 
 def get_base_address(process_name):
@@ -506,7 +589,7 @@ def get_base_address(process_name):
 
 def get_data(pid, base_address, only_large_monsters, workers=2):
     process_handle = pymem.process.open(pid)
-    pattern = "?? ?? 01 ?? 0F 18 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 20 00 00 00 00 00 00 00"
+    pattern = "?? ?? 01 ?? ?? 18 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 20 00 00 00 00 00 00 00"
     scan_size = 0x6000000  # 0x9BBF000 or 7BBF000
     if process_handle:
         return scan_aob_batched(
@@ -543,13 +626,15 @@ if __name__ == "__main__":
                         win = win2
         if win:
             base_address = get_base_address(win.process_name)
-            monsters = get_data(win.pid, base_address, True)
+            data = get_data(win.pid, base_address, True)
+            monster_selected = get_monster_selected(win.pid, base_address)
+            monsters = data["monsters"]
             for monster in monsters:
                 if monster[2] > 5:
                     large_monster = Monsters.large_monsters.get(monster[0])
                     small_monster_name = Monsters.small_monsters.get(monster[0])
                     if large_monster:
-                        print([large_monster["name"], *monster[1::]])
+                        print([large_monster["name"], *monster[1::], monster_selected])
                     if small_monster_name:
                         print([small_monster_name, *monster[1::]])
         end = time.time()

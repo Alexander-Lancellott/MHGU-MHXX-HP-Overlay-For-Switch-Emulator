@@ -17,7 +17,7 @@ build_exe_options = {
 
 setup(
     name="MHGU-MHXX-HP-Overlay",
-    version="1.1.0",
+    version="1.1.1",
     author="Alexander-Lancellott",
     description="MHGU-MHXX-HP-Overlay",
     options={"build_exe": build_exe_options},

@@ -216,7 +216,7 @@ class ConfigOverlay:
     font_weight = set_option("font_weight", Config.Overlay, "get", "bold")
     max_workers = set_option("max_workers", Config.Overlay, "getint", "2")
     max_workers = max_workers if 1 <= max_workers <= 16 else 2
-    hp_update_time = set_option("hp_update_time", Config.Overlay, "getfloat", "0.8")
+    hp_update_time = set_option("hp_update_time", Config.Overlay, "getfloat", "0.6")
     hp_update_time = hp_update_time if hp_update_time >= 0.1 else 0.1
     show_initial_hp = set_option(
         "show_initial_hp", Config.Overlay, "getboolean", "true"
@@ -232,6 +232,12 @@ class ConfigOverlay:
     )
     show_crown = set_option(
         "show_crown", Config.Overlay, "getboolean", "true"
+    )
+    show_abnormal_status = set_option(
+        "show_abnormal_status", Config.Overlay, "getboolean", "true"
+    )
+    always_show_abnormal_status = set_option(
+        "always_show_abnormal_status", Config.Overlay, "getboolean", "false"
     )
 
 
@@ -276,4 +282,32 @@ class ConfigColors:
     background_opacity = set_option("background_opacity", Config.Colors, "getint", "60")
     background_opacity = (
         background_opacity if 1 <= background_opacity <= 100 else 60
+    )
+    abnormal_status_text_color = set_option(
+        "abnormal_status_text_color", Config.Colors, "get", "yellow"
+    )
+    if abnormal_status_text_color not in colors:
+        error = (
+            "Invalid CSS SVG Color. "
+            "Check this: https://upload.wikimedia.org/wikipedia/commons/2/2b/SVG_Recognized_color_keyword_names.svg"
+        )
+        print_error("abnormal_status_text_color", error)
+    abnormal_status_background_color = set_option(
+        "abnormal_status_background_color", Config.Colors, "get", "green"
+    )
+    if abnormal_status_background_color not in colors:
+        error = (
+            "Invalid CSS SVG Color. "
+            "Check this: https://upload.wikimedia.org/wikipedia/commons/2/2b/SVG_Recognized_color_keyword_names.svg"
+        )
+        print_error("abnormal_status_background_color", error)
+    abnormal_status_text_opacity = set_option(
+        "abnormal_status_text_opacity", Config.Colors, "getint", "100"
+    )
+    abnormal_status_text_opacity = abnormal_status_text_opacity if 1 <= abnormal_status_text_opacity <= 100 else 100
+    abnormal_status_background_opacity = set_option(
+        "abnormal_status_background_opacity", Config.Colors, "getint", "50"
+    )
+    abnormal_status_background_opacity = (
+        abnormal_status_background_opacity if 1 <= abnormal_status_background_opacity <= 100 else 60
     )

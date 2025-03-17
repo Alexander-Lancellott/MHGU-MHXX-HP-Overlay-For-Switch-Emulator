@@ -15,6 +15,7 @@ red = Fore.RED
 reset = Fore.RESET
 
 max_monsters = 7
+max_status = 8
 
 
 def clear_screen():

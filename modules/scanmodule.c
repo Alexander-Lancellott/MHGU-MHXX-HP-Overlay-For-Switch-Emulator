@@ -138,9 +138,9 @@ MemoryRegion* get_memory_regions(const char* process_name, int* count) {
 
 static PyObject* get_regions(PyObject* self, PyObject* args) {
     const char* process_name;
-    int region_size;
+    unsigned long long region_size;
 
-    if (!PyArg_ParseTuple(args, "sk", &process_name, &region_size)) {
+    if (!PyArg_ParseTuple(args, "sK", &process_name, &region_size)) {
         return NULL;
     }
 

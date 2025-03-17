@@ -8,9 +8,9 @@ import win32gui
 from ahk import AHK, Position
 from PySide6.QtCore import QTimer, Qt, QThread, Signal, qInstallMessageHandler
 from PySide6.QtGui import QColorConstants
-from modules.mhgu_xx import get_data, get_base_address, Monsters
+from modules.mhgu_xx import get_data, get_base_address, get_monster_selected, Monsters
 from modules.config import ConfigOverlay, ConfigLayout, ConfigColors
-from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QSizePolicy
+from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout, QSizePolicy
 from modules.utils import (
     TextColor,
     PassiveTimer,
@@ -20,6 +20,7 @@ from modules.utils import (
     clear_screen,
     header,
     max_monsters,
+    max_status,
     logger_init,
     log_timer,
     log_error,
@@ -28,7 +29,7 @@ from ahk_wmutil import wmutil_extension
 
 
 class DataFetcher(QThread):
-    data_fetched = Signal(list)
+    data_fetched = Signal(dict)
 
     def __init__(self, pid, base_address, show_small_monsters, running, max_workers):
         super().__init__()
@@ -41,6 +42,13 @@ class DataFetcher(QThread):
     def run(self):
         while True:
             data = get_data(self.pid, self.base_address, self.show_small_monsters, self.max_workers)
+            try:
+                if not ConfigOverlay.always_show_abnormal_status and ConfigOverlay.show_abnormal_status:
+                    data["monster_selected"] = get_monster_selected(self.pid, self.base_address)
+                else:
+                    data["monster_selected"] = 0
+            except (Exception,):
+                pass
             self.data_fetched.emit(data)
             self.msleep(round(ConfigOverlay.hp_update_time * 1000))
 
@@ -75,6 +83,8 @@ class Overlay(QWidget):
         self.show_small_monsters = ConfigOverlay.show_small_monsters,
         self.show_size_multiplier = ConfigOverlay.show_size_multiplier
         self.show_crown = ConfigOverlay.show_crown
+        self.show_abnormal_status = ConfigOverlay.show_abnormal_status
+        self.always_show_abnormal_status = ConfigOverlay.always_show_abnormal_status
         self.fix_offset = dict(x=ConfigLayout.fix_x, y=ConfigLayout.fix_y)
         self.hotkey = ConfigOverlay.hotkey
         self.data_fetcher = None
@@ -106,7 +116,6 @@ class Overlay(QWidget):
             f"""
             font-family: {ConfigOverlay.font_family}; 
             font-weight: {ConfigOverlay.font_weight};
-            font-size: {ConfigOverlay.font_size}px;
             border-radius: 5px;
             margin: 0 0 5px;
             """
@@ -121,6 +130,15 @@ class Overlay(QWidget):
             ConfigColors.background_opacity,
         )
 
+        status_color = rgba_int(
+            getattr(QColorConstants.Svg, ConfigColors.abnormal_status_text_color).rgb(),
+            ConfigColors.abnormal_status_text_opacity,
+        )
+        status_background_color = rgba_int(
+            getattr(QColorConstants.Svg, ConfigColors.abnormal_status_background_color).rgb(),
+            ConfigColors.abnormal_status_background_opacity,
+        )
+
         labels = []
         for i in range(0, max_monsters):
             label = QLabel()
@@ -129,6 +147,8 @@ class Overlay(QWidget):
                 color: {color};
                 background-color: {background_color};
                 padding: 5px {15 if self.orientation == 'center' else 10}px;
+                font-size: {ConfigOverlay.font_size}px;
+                margin: 0 0 5px;
                 """
             )
             label.setSizePolicy(
@@ -155,6 +175,42 @@ class Overlay(QWidget):
                 label_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
             label_layouts.append(label_layout)
 
+        status_labels = []
+        for i in range(0, max_status * 2):
+            label = QLabel()
+            label.setStyleSheet(
+                f"""
+                        color: {status_color};
+                        background-color: {status_background_color};
+                        padding: 3px {10 if self.orientation == 'center' else 5}px;
+                        font-size: {int(ConfigOverlay.font_size / 1.12)}px;
+                        margin: 0 3px 5px 3px;
+                        """
+            )
+            label.setSizePolicy(
+                QSizePolicy.Policy.Expanding if ConfigLayout.align else QSizePolicy.Policy.Fixed,
+                QSizePolicy.Policy.Fixed
+            )
+            if self.orientation == "right":
+                label.setAlignment(Qt.AlignmentFlag.AlignRight)
+            elif self.orientation == "left":
+                label.setAlignment(Qt.AlignmentFlag.AlignLeft)
+            else:
+                label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            status_labels.append(label)
+
+        status_layouts = []
+        for i in range(0, max_status):
+            status_layout = QHBoxLayout()
+            status_layout.setContentsMargins(0, 0, 0, 0)
+            if self.orientation == "right":
+                status_layout.setAlignment(Qt.AlignmentFlag.AlignRight)
+            elif self.orientation == "left":
+                status_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+            else:
+                status_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            status_layouts.append(status_layout)
+
         lm_layout = QVBoxLayout()
         lm_layout.setContentsMargins(0, 0, 0, 0)
         lm_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -164,6 +220,10 @@ class Overlay(QWidget):
 
         for index, label_layout in enumerate(label_layouts):
             if 2 > index:
+                label_layout.addLayout(status_layouts[index])
+                label_layout.addLayout(status_layouts[index + 2])
+                label_layout.addLayout(status_layouts[index + 4])
+                label_layout.addLayout(status_layouts[index + 6])
                 lm_layout.addLayout(label_layout)
             else:
                 sm_layout.addLayout(label_layout)
@@ -192,15 +252,15 @@ class Overlay(QWidget):
         ahk.start_hotkeys()
 
         timer2 = QTimer(self)
-        timer2.timeout.connect(lambda: self.wait_init_game(labels, label_layouts))
+        timer2.timeout.connect(lambda: self.wait_init_game(labels, label_layouts, status_labels, status_layouts))
         timer2.start(1000)
 
-    def start_data_fetcher(self, labels, label_layouts):
+    def start_data_fetcher(self, labels, label_layouts, status_labels, status_layouts):
         self.data_fetcher = DataFetcher(
             self.pid, self.base_address, self.show_small_monsters, self.running, self.max_workers
         )
         self.data_fetcher.data_fetched.connect(
-            lambda data: self.update_show(data, labels, label_layouts)
+            lambda data: self.update_show(data, labels, label_layouts, status_labels, status_layouts)
         )
         self.data_fetcher.start()
 
@@ -269,7 +329,7 @@ class Overlay(QWidget):
                 log_error(f'Toggle Borderless Error: {error}')
             pass
 
-    def wait_init_game(self, labels, label_layouts):
+    def wait_init_game(self, labels, label_layouts, status_labels, status_layouts):
         if not self.is_open_window:
             if self.running:
                 clear_screen()
@@ -292,7 +352,7 @@ class Overlay(QWidget):
             if not self.base_address:
                 self.base_address = get_base_address(self.process_name)
                 if self.base_address and self.base_address > 0:
-                    self.start_data_fetcher(labels, label_layouts)
+                    self.start_data_fetcher(labels, label_layouts, status_labels, status_layouts)
             if not self.running:
                 clear_screen()
                 header()
@@ -302,11 +362,23 @@ class Overlay(QWidget):
             text = TextColor.green(f"{"MHXX" if self.is_xx else "MHGU"} running.")
             print(f"\r{text}", end="", flush=True)
 
-    def update_show(self, data, labels, label_layouts):
+    def update_show(self, data, labels, label_layouts, status_labels, status_layouts):
         for index, label in enumerate(labels):
-            if len(data) > index:
+            if data['total'][0] == 0:
+                for i in range(0, max_status):
+                    status_label = status_labels[i]
+                    status_label2 = status_labels[i + max_status]
+                    status_label.clear()
+                    status_label.setParent(None)
+                    status_label2.clear()
+                    status_label2.setParent(None)
+            if len(data['monsters']) > index:
                 label_layout = label_layouts[index]
-                monster = data[index]
+                monster = data['monsters'][index]
+                monster_selected = data['monster_selected']
+                if data['total'][0] == 1:
+                    if monster_selected > 1:
+                        monster_selected = 1
                 large_monster = Monsters.large_monsters.get(monster[0])
                 small_monster_name = Monsters.small_monsters.get(monster[0])
                 hp = monster[1]
@@ -315,6 +387,8 @@ class Overlay(QWidget):
                     if large_monster and hp < 45000:
                         text = ""
                         size_multiplier = None
+                        monster_number = index + 1
+                        abnormal_status = monster[4]
                         if self.show_size_multiplier:
                             size_multiplier = monster[3]
                             text += f"({size_multiplier}) "
@@ -327,7 +401,48 @@ class Overlay(QWidget):
                         if self.show_initial_hp:
                             text += f" | {initial_hp}"
                         label.setText(text)
-                        label_layout.addWidget(label)
+                        if (
+                            (monster_number == monster_selected or self.always_show_abnormal_status) and
+                            self.show_abnormal_status
+                        ):
+                            i = 0
+                            for key, value in abnormal_status.items():
+                                status_label = status_labels[i if monster_number == 1 else i + max_status]
+                                if key == "Rage":
+                                    m, s = divmod(value, 60)
+                                    status_label.setText(f"{key}: {m}:{s:02d}")
+                                else:
+                                    status_label.setText(f"{key}: {value[0]}/{value[1]}")
+                                if i < 2:
+                                    status_layouts[index].addWidget(status_label)
+                                elif i < 4:
+                                    status_layouts[2 + index].addWidget(status_label)
+                                elif i < 6:
+                                    status_layouts[4 + index].addWidget(status_label)
+                                else:
+                                    status_layouts[6 + index].addWidget(status_label)
+                                i += 1
+
+                        if self.show_abnormal_status:
+                            for i in range(0, max_status):
+                                status_label = status_labels[i]
+                                status_label2 = status_labels[i + max_status]
+                                if self.always_show_abnormal_status:
+                                    if data["total"][0] == 1:
+                                        status_label2.clear()
+                                        status_label2.setParent(None)
+                                elif monster_selected == 0:
+                                    status_label.clear()
+                                    status_label.setParent(None)
+                                    status_label2.clear()
+                                    status_label2.setParent(None)
+                                elif monster_selected == 1:
+                                    status_label2.clear()
+                                    status_label2.setParent(None)
+                                else:
+                                    status_label.clear()
+                                    status_label.setParent(None)
+                        label_layout.insertWidget(0, label)
                     if ConfigOverlay.show_small_monsters:
                         if small_monster_name and hp < 20000:
                             initial_hp = monster[2]
