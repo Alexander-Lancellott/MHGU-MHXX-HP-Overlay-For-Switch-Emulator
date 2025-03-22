@@ -51,6 +51,9 @@ If your monitor has a resolution higher than 1080p, it's likely you're using a D
 
 To use the overlay, simply open the `MHGU-MHXX-HP-Overlay.exe` file.
 
+> [!IMPORTANT]  
+> If the overlay is not working properly, try running it with administrator privileges to ensure it functions correctly. If you're unsure how to do this, you can check this [guide](https://www.majorgeeks.com/content/page/how_to_run_an_app_as_administrator_in_windows_10.html).
+
 If one of the games from the [compatibility list](#compatibility) isn't running in the emulator, you will see a red message in the overlay console saying **No game running** and a countdown starting from 20 minutes. When the countdown reaches zero, the overlay will automatically close to save resources.
 
 ![No game running](https://res.cloudinary.com/dms5y8rug/image/upload/c_thumb,g_face,q_auto:best/MH-HP-Overlay/no_game_running_3.webp)
