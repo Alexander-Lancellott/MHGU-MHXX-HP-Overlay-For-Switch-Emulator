@@ -24,6 +24,9 @@ from modules.utils import (
     logger_init,
     log_timer,
     log_error,
+    enable_ansi_colors,
+    disable_quick_edit,
+    reset_app
 )
 from ahk_wmutil import wmutil_extension
 
@@ -87,6 +90,7 @@ class Overlay(QWidget):
         self.always_show_abnormal_status = ConfigOverlay.always_show_abnormal_status
         self.fix_offset = dict(x=ConfigLayout.fix_x, y=ConfigLayout.fix_y)
         self.hotkey = ConfigOverlay.hotkey
+        self.reset_hotkey = ConfigOverlay.reset_hotkey
         self.data_fetcher = None
         self.hp_update_time = round(ConfigOverlay.hp_update_time * 1000)
         self.debugger = ConfigOverlay.debugger
@@ -243,6 +247,9 @@ class Overlay(QWidget):
         )
         timer1.start(10)
 
+        ahk.add_hotkey(
+            f"{self.reset_hotkey} Up", reset_app,
+        )
         ahk.add_hotkey(
             f"{self.hotkey} Up",
             callback=lambda: self.toggle_borderless_screen(
@@ -524,6 +531,8 @@ class Overlay(QWidget):
 if __name__ == "__main__":
     os.environ["QT_FONT_DPI"] = '1'
     qInstallMessageHandler(object)
+    enable_ansi_colors()
+    disable_quick_edit()
     prevent_keyboard_exit_error()
     cursor.hide()
     header()

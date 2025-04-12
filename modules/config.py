@@ -207,6 +207,14 @@ class ConfigOverlay:
             "The symbols *, ~, $ and UP are not allowed."
         )
         print_error("hotkey", error)
+    reset_hotkey = set_option("reset_hotkey", Config.Overlay, "get", "^r")
+    if not re.search(hotkey_regex, reset_hotkey):
+        error = (
+            "Invalid hotkey. "
+            "Check this: https://www.autohotkey.com/docs/v1/Hotkeys.htm#Symbols "
+            "The symbols *, ~, $ and UP are not allowed."
+        )
+        print_error("reset_hotkey", error)
     debugger = set_option("debugger", Config.Overlay, "getboolean", "false")
     font_size = set_option("font_size", Config.Overlay, "getint", "18")
     font_size = font_size if font_size >= 1 else 1

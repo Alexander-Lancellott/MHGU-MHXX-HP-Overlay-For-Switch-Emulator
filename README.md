@@ -3,7 +3,7 @@
 <div align="center">
 
   [![StaticBadge](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/)
-  [![App](https://img.shields.io/badge/App-1.1.1-green)](https://github.com/Alexander-Lancellott/MHGU-MHXX-HP-Overlay-For-Switch-Emulator)
+  [![App](https://img.shields.io/badge/App-1.1.2-green)](https://github.com/Alexander-Lancellott/MHGU-MHXX-HP-Overlay-For-Switch-Emulator)
 
 </div>
 
@@ -50,9 +50,6 @@ If your monitor has a resolution higher than 1080p, it's likely you're using a D
 ## How to use
 
 To use the overlay, simply open the `MHGU-MHXX-HP-Overlay.exe` file.
-
-> [!IMPORTANT]  
-> If the overlay is not working properly, try running it with administrator privileges to ensure it functions correctly. If you're unsure how to do this, you can check this [guide](https://www.majorgeeks.com/content/page/how_to_run_an_app_as_administrator_in_windows_10.html).
 
 If one of the games from the [compatibility list](#compatibility) isn't running in the emulator, you will see a red message in the overlay console saying **No game running** and a countdown starting from 20 minutes. When the countdown reaches zero, the overlay will automatically close to save resources.
 
@@ -123,11 +120,15 @@ Inside the root folder, there is a file called `config.ini`, which stores the va
 
 Below, you will find sub-sections dedicated to documenting each of the available options in the `config.ini`.
 
-### Hotkey
+### Hotkey & Reset hotkey
 
 The `config.ini` file includes the `hotkey` option, which defines the keyboard shortcut used to toggle the borderless screen system on/off. By default, this shortcut is `Ctrl + Alt + F`. You can replace it with another shortcut if the default one is inconvenient for you.
 
 It's important to note that special keys such as `Ctrl`, `Shift`, or `Alt` are represented by specific symbols. It's recommended to refer to the following [documentation](https://www.autohotkey.com/docs/v1/Hotkeys.htm#Symbols) to ensure you're using the correct symbols when editing the shortcut. The symbols `*`, `~`, `$` aren't allowed.
+
+In addition, the `config.ini` file also includes a separate option called `reset_hotkey`. This defines a keyboard shortcut used to forcefully reset the overlay in case it becomes frozen or unresponsive due to unexpected behavior. This is especially useful for quickly recovering without having to close and reopen the application manually.
+
+By default, the reset_hotkey is set to `Ctrl + R`. You can change it to any other valid combination that suits your needs.
 
 Remember to close and reopen the overlay after making changes to the `config.ini` file for these adjustments to take effect.
 
@@ -151,6 +152,14 @@ Remember to close and reopen the overlay after making changes to the `config.ini
   <tr align="center">
     <td>hotkey</td>
     <td>^!f</td>
+    <td>string</td>
+    <td>
+      Must be valid hotkey, check this: https://www.autohotkey.com/docs/v1/Hotkeys.htm#Symbols
+    </td>
+  </tr>
+  <tr align="center">
+    <td>reset_hotkey</td>
+    <td>^r</td>
     <td>string</td>
     <td>
       Must be valid hotkey, check this: https://www.autohotkey.com/docs/v1/Hotkeys.htm#Symbols
@@ -1034,8 +1043,8 @@ You will find the `build` in the `build/dist` folder
 - colorama - v0.4.6
 - PySide6 - v6.7.2
 - Pymem - v1.13.1
-- cx_Freeze - last
+- cx_Freeze - v8.0.0
 - cursor - v1.3.5
 - pywin32 - v306
-- numpy - last
+- numpy - v2.2.4
 - art - v6.2

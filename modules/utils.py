@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import signal
+import ctypes
 import logging
 from art import *
 from colorama import Fore
@@ -125,3 +126,41 @@ def log_info(msg: str):
 @lru_cache(5)
 def log_error(msg: str):
     logging.error(msg)
+
+
+def enable_ansi_colors():
+    if sys.platform != "win32":
+        return
+
+    kernel32 = ctypes.windll.kernel32
+    handle = kernel32.GetStdHandle(-11)  # STD_OUTPUT_HANDLE = -11
+
+    mode = ctypes.c_uint()
+    kernel32.GetConsoleMode(handle, ctypes.byref(mode))
+
+    ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004
+    new_mode = mode.value | ENABLE_VIRTUAL_TERMINAL_PROCESSING
+    kernel32.SetConsoleMode(handle, new_mode)
+
+
+def disable_quick_edit():
+    if sys.platform != "win32":
+        return
+
+    kernel32 = ctypes.windll.kernel32
+    hStdin = kernel32.GetStdHandle(-10)  # STD_INPUT_HANDLE = -10
+
+    # Get current console mode
+    mode = ctypes.c_uint()
+    kernel32.GetConsoleMode(hStdin, ctypes.byref(mode))
+
+    # Disable ENABLE_QUICK_EDIT_MODE (0x40)
+    # Keep the other flags
+    new_mode = mode.value & ~0x40
+    kernel32.SetConsoleMode(hStdin, new_mode)
+
+
+def reset_app():
+    clear_screen()
+    python = sys.executable
+    os.execl(python, python, *sys.argv)
