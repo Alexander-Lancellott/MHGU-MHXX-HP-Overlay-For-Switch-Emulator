@@ -366,7 +366,7 @@ class Overlay(QWidget):
             self.running = True
             self.counter = self.timeout
             self.timeout_start = time.time()
-            text = TextColor.green(f"{"MHXX" if self.is_xx else "MHGU"} running.")
+            text = TextColor.green(f"{'MHXX' if self.is_xx else 'MHGU'} running.")
             print(f"\r{text}", end="", flush=True)
 
     def update_show(self, data, labels, label_layouts, status_labels, status_layouts):
@@ -399,9 +399,7 @@ class Overlay(QWidget):
                         if self.show_size_multiplier:
                             size_multiplier = monster[3]
                             text += f"({size_multiplier}) "
-                        text += f"{large_monster["name"]}{get_crown(
-                            size_multiplier, large_monster["crowns"], self.show_crown
-                        )}:"
+                        text += f"{large_monster['name']}{get_crown(size_multiplier, large_monster['crowns'], self.show_crown)}:"
                         if self.show_hp_percentage:
                             text += f" {math.ceil((hp / initial_hp) * 100)}% |"
                         text += f" {hp}"
