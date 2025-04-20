@@ -403,7 +403,8 @@ class Overlay(QWidget):
                         if self.show_size_multiplier:
                             size_multiplier = monster[3]
                             text += f"({size_multiplier}) "
-                        text += f"{large_monster['name']}{get_crown(size_multiplier, large_monster['crowns'], self.show_crown)}:"
+                        crown_locale = resolve_locale(self.selected_locale).crowns
+                        text += f"{large_monster['name']}{get_crown(size_multiplier, large_monster['crowns'], self.show_crown, crown_locale)}:"
                         if self.show_hp_percentage:
                             text += f" {math.ceil((hp / initial_hp) * 100)}% |"
                         text += f" {hp}"
@@ -417,7 +418,7 @@ class Overlay(QWidget):
                             i = 0
                             for key, value in abnormal_status.items():
                                 status_label = status_labels[i if monster_number == 1 else i + max_status]
-                                if key == "Rage":
+                                if key == resolve_locale(self.selected_locale).status.get("rage"):
                                     m, s = divmod(value, 60)
                                     status_label.setText(f"{key}: {m}:{s:02d}")
                                 else:

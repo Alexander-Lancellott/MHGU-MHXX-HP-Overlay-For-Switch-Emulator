@@ -38,6 +38,7 @@ def scan_aob_batched(
         chunk_size = scan_size // num_chunks
 
         monsters = resolve_locale(locale)
+        abnormal_status_locale = resolve_locale(locale).status
 
         large_monsters = monsters.large_monsters
         small_monsters = monsters.small_monsters if show_small_monsters else {}
@@ -73,36 +74,36 @@ def scan_aob_batched(
                             status_name: values,
                         })
 
-                add_abnormal_status("Poison", [
+                add_abnormal_status(abnormal_status_locale.get("poison"), [
                     read_int(process_handle, pointer + 0x5924, 2),
                     read_int(process_handle, pointer + 0x5930, 2)
                 ])
-                add_abnormal_status("Sleep", [
+                add_abnormal_status(abnormal_status_locale.get("sleep"), [
                     read_int(process_handle, pointer + 0x5928, 2),
                     read_int(process_handle, pointer + 0x5926, 2)
                 ])
-                add_abnormal_status("Paralysis", [
+                add_abnormal_status(abnormal_status_locale.get("paralysis"), [
                     read_int(process_handle, pointer + 0x593E, 2),
                     read_int(process_handle, pointer + 0x593C, 2)
                 ])
-                add_abnormal_status("Dizzy", [
+                add_abnormal_status(abnormal_status_locale.get("dizzy"), [
                     read_int(process_handle, pointer + 0x5A06, 2),
                     read_int(process_handle, pointer + 0x5A08, 2)
                 ])
-                add_abnormal_status("Exhaust", [
+                add_abnormal_status(abnormal_status_locale.get("exhaust"), [
                     read_int(process_handle, pointer + 0x5A12, 2),
                     read_int(process_handle, pointer + 0x5A14, 2)
                 ])
-                add_abnormal_status("Jump", [
+                add_abnormal_status(abnormal_status_locale.get("jump"), [
                     read_int(process_handle, pointer + 0x5A2A, 2),
                     read_int(process_handle, pointer + 0x5A2C, 2)
                 ])
-                add_abnormal_status("Blast", [
+                add_abnormal_status(abnormal_status_locale.get("blast"), [
                     read_int(process_handle, pointer + 0x5A3A, 2),
                     read_int(process_handle, pointer + 0x5A38, 2)
                 ])
                 abnormal_status.update({
-                    "Rage": int(ceil(
+                    abnormal_status_locale.get("rage"): int(ceil(
                         read_float(process_handle, pointer + 0x1A4) / 60
                     ))
                 })

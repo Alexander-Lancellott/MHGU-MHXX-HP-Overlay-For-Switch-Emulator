@@ -3,15 +3,14 @@ from dataclasses import dataclass
 
 def resolve_locale(locale):
     if locale == "en_US":
-        return Monsters_en_US
+        return en_US
     elif locale == "zh_CN":
-        return Monsters_zh_CN
+        return zh_CN
     else:
         raise ValueError(f"Unsupported locale: {locale}")
 
-
 @dataclass
-class Monsters_en_US:
+class en_US:
     large_monsters = {
         1: {"name": "Rathian", "crowns": {"g": 123, "s": 115, "m": 90}},
         2: {"name": "Rathalos", "crowns": {"g": 123, "s": 115, "m": 90}},
@@ -108,7 +107,6 @@ class Monsters_en_US:
         1343: {"name": "Raging Brachydios", "crowns": {"g": 123, "s": 115, "m": 90}},
         1351: {"name": "Chaotic Gore Magala", "crowns": {"g": 123, "s": 115, "m": 90}},
     }
-
     small_monsters = {
         4097: "Aptonoth",
         4098: "Apceros",
@@ -148,10 +146,24 @@ class Monsters_en_US:
         4144: "Moofah",
         4197: "Rock",
     }
-
+    status = {
+        "poison": "Poison",
+        "sleep": "Sleep",
+        "paralysis": "Paralysis",
+        "dizzy": "Dizzy",
+        "exhaust": "Exhaust",
+        "jump": "Jump",
+        "blast": "Blast",
+        "rage": "Rage",
+    }
+    crowns = {
+        "g": " Gold",
+        "s": " Silver",
+        "m": " Mini",
+    }
 
 @dataclass
-class Monsters_zh_CN:
+class zh_CN:
     large_monsters = {
         1: {"name": "雌火龙", "crowns": {"g": 123, "s": 115, "m": 90}},
         2: {"name": "火龙", "crowns": {"g": 123, "s": 115, "m": 90}},
@@ -248,7 +260,6 @@ class Monsters_zh_CN:
         1343: {"name": "猛爆碎龙", "crowns": {"g": 123, "s": 115, "m": 90}},
         1351: {"name": "混沌黑蚀龙", "crowns": {"g": 123, "s": 115, "m": 90}},
     }
-
     small_monsters = {
         4097: "草食龙",
         4098: "背甲龙",
@@ -287,4 +298,19 @@ class Monsters_zh_CN:
         4143: "首鸣龙",
         4144: "云羊鹿",
         4197: "石头",
+    }
+    status = {
+        "poison": "毒",
+        "sleep": "睡眠",
+        "paralysis": "麻痹",
+        "dizzy": "眩晕",
+        "exhaust": "疲劳",
+        "jump": "骑乘",
+        "blast": "爆破",
+        "rage": "发怒",
+    }
+    crowns = {
+        "g": " 金冠",
+        "s": " 银冠",
+        "m": " 小金冠",
     }
