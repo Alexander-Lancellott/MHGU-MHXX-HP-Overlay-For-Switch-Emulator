@@ -66,15 +66,15 @@ def header():
     print(f"Exit with {exit_hotkey} or close the application.\n")
 
 
-def get_crown(size, crowns, enable, locale):
+def get_crown(size, crowns, enable):
     if not enable or crowns["g"] is None:
         return ""
     if crowns["g"] <= size:
-        return locale.get("g")
+        return " Gold"
     if crowns["s"] <= size:
-        return locale.get("s")
+        return " Silver"
     if crowns["m"] >= size:
-        return locale.get("m")
+        return " Mini"
     return ""
 
 
