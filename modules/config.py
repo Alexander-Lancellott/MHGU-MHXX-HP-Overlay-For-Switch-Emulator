@@ -154,10 +154,6 @@ colors = [
     "yellow",
     "yellowgreen",
 ]
-available_locale = [
-    "en_US",
-    "zh_CN",
-]
 
 prevent_keyboard_exit_error()
 
@@ -251,14 +247,6 @@ class ConfigOverlay:
     always_show_abnormal_status = set_option(
         "always_show_abnormal_status", Config.Overlay, "getboolean", "false"
     )
-    locale = set_option("locale", Config.Overlay, "get", "en_US")
-    if locale not in available_locale:
-        error = (
-            "Invalid locale. Defaulting to en_US. "
-            "Available locales: en_US, zh_CN"
-        )
-        print_error("language", error)
-        locale = "en_US"
 
 
 @dataclass

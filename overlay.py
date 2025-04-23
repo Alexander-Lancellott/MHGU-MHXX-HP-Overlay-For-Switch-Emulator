@@ -8,9 +8,8 @@ import win32gui
 from ahk import AHK, Position
 from PySide6.QtCore import QTimer, Qt, QThread, Signal, qInstallMessageHandler
 from PySide6.QtGui import QColorConstants
-from modules.mhgu_xx import get_data, get_base_address, get_monster_selected
+from modules.mhgu_xx import get_data, get_base_address, get_monster_selected, Monsters
 from modules.config import ConfigOverlay, ConfigLayout, ConfigColors
-from modules.locales import resolve_locale
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout, QSizePolicy
 from modules.utils import (
     TextColor,
@@ -35,18 +34,17 @@ from ahk_wmutil import wmutil_extension
 class DataFetcher(QThread):
     data_fetched = Signal(dict)
 
-    def __init__(self, pid, base_address, show_small_monsters, running, max_workers, locale):
+    def __init__(self, pid, base_address, show_small_monsters, running, max_workers):
         super().__init__()
         self.pid = pid
         self.running = running
         self.base_address = base_address
         self.show_small_monsters = show_small_monsters
         self.max_workers = max_workers
-        self.locale = locale
 
     def run(self):
         while True:
-            data = get_data(self.pid, self.base_address, self.show_small_monsters, self.locale, self.max_workers)
+            data = get_data(self.pid, self.base_address, self.show_small_monsters, self.max_workers)
             try:
                 if not ConfigOverlay.always_show_abnormal_status and ConfigOverlay.show_abnormal_status:
                     data["monster_selected"] = get_monster_selected(self.pid, self.base_address)
@@ -90,7 +88,6 @@ class Overlay(QWidget):
         self.show_crown = ConfigOverlay.show_crown
         self.show_abnormal_status = ConfigOverlay.show_abnormal_status
         self.always_show_abnormal_status = ConfigOverlay.always_show_abnormal_status
-        self.selected_locale = ConfigOverlay.locale
         self.fix_offset = dict(x=ConfigLayout.fix_x, y=ConfigLayout.fix_y)
         self.hotkey = ConfigOverlay.hotkey
         self.reset_hotkey = ConfigOverlay.reset_hotkey
@@ -267,7 +264,7 @@ class Overlay(QWidget):
 
     def start_data_fetcher(self, labels, label_layouts, status_labels, status_layouts):
         self.data_fetcher = DataFetcher(
-            self.pid, self.base_address, self.show_small_monsters, self.running, self.max_workers, self.selected_locale
+            self.pid, self.base_address, self.show_small_monsters, self.running, self.max_workers
         )
         self.data_fetcher.data_fetched.connect(
             lambda data: self.update_show(data, labels, label_layouts, status_labels, status_layouts)
@@ -389,9 +386,8 @@ class Overlay(QWidget):
                 if data['total'][0] == 1:
                     if monster_selected > 1:
                         monster_selected = 1
-                monsters = resolve_locale(self.selected_locale)
-                large_monster = monsters.large_monsters.get(monster[0])
-                small_monster_name = monsters.small_monsters.get(monster[0])
+                large_monster = Monsters.large_monsters.get(monster[0])
+                small_monster_name = Monsters.small_monsters.get(monster[0])
                 hp = monster[1]
                 initial_hp = monster[2]
                 if initial_hp > 5:
