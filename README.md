@@ -616,7 +616,7 @@ The `always_show_abnormal_status` option in the `config.ini` file allows abnorma
 
 ### Language
 
-The `language` option in the `config.ini` file allows you to specify the overlay's language. Currently, only two languages are available: `"en_US"` (default) and `"zh_CN"`.
+The `language` option in the `config.ini` file allows you to specify the overlay's language. Currently, only two languages are available: `en_US` (default) and `zh_CN`.
 
 I'm not responsible for providing translations, so if the available languages don't suit your needs, you can create your own `.yaml` translation file inside the `locales` folder. Use the `zh_CN.yaml` file as a reference or template.
 
@@ -653,7 +653,7 @@ Remember to close and reopen the overlay after making changes in the `config.ini
       string
     </td>
     <td>
-      You must use one of the available languages from the locales folder by writing only the filename without the .yaml extension, or create your own translation file (.yaml). Except for "en_US", which does not require a file as it is the default language.
+      You must use one of the available languages from the locales folder by writing only the filename without the .yaml extension, or create your own translation file (.yaml). Except for 'en_US', which does not require a file as it is the default language.
     </td>
   </tr>
 </table>
