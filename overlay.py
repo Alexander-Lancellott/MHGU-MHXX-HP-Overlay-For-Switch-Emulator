@@ -26,7 +26,8 @@ from modules.utils import (
     log_error,
     enable_ansi_colors,
     disable_quick_edit,
-    reset_app
+    reset_app,
+    Translator
 )
 from ahk_wmutil import wmutil_extension
 
@@ -88,6 +89,7 @@ class Overlay(QWidget):
         self.show_crown = ConfigOverlay.show_crown
         self.show_abnormal_status = ConfigOverlay.show_abnormal_status
         self.always_show_abnormal_status = ConfigOverlay.always_show_abnormal_status
+        self.t = Translator(ConfigOverlay.language)
         self.fix_offset = dict(x=ConfigLayout.fix_x, y=ConfigLayout.fix_y)
         self.hotkey = ConfigOverlay.hotkey
         self.reset_hotkey = ConfigOverlay.reset_hotkey
@@ -399,7 +401,10 @@ class Overlay(QWidget):
                         if self.show_size_multiplier:
                             size_multiplier = monster[3]
                             text += f"({size_multiplier}) "
-                        text += f"{large_monster['name']}{get_crown(size_multiplier, large_monster['crowns'], self.show_crown)}:"
+                        text += (
+                            f"{self.t(large_monster['name'])}"
+                            f"{self.t(get_crown(size_multiplier, large_monster['crowns'], self.show_crown))}:"
+                        )
                         if self.show_hp_percentage:
                             text += f" {math.ceil((hp / initial_hp) * 100)}% |"
                         text += f" {hp}"
@@ -415,9 +420,9 @@ class Overlay(QWidget):
                                 status_label = status_labels[i if monster_number == 1 else i + max_status]
                                 if key == "Rage":
                                     m, s = divmod(value, 60)
-                                    status_label.setText(f"{key}: {m}:{s:02d}")
+                                    status_label.setText(f"{self.t(key)}: {m}:{s:02d}")
                                 else:
-                                    status_label.setText(f"{key}: {value[0]}/{value[1]}")
+                                    status_label.setText(f"{self.t(key)}: {value[0]}/{value[1]}")
                                 if i < 2:
                                     status_layouts[index].addWidget(status_label)
                                 elif i < 4:
