@@ -456,7 +456,7 @@ class Overlay(QWidget):
                     if ConfigOverlay.show_small_monsters:
                         if small_monster_name and hp < 20000:
                             initial_hp = monster[2]
-                            text = f"{small_monster_name}:"
+                            text = f"{self.t(small_monster_name)}:"
                             if self.show_hp_percentage:
                                 text += f" {math.ceil((hp / initial_hp) * 100)}% |"
                             text += f" {hp}"
