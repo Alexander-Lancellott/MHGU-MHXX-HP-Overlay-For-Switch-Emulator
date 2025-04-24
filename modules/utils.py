@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import yaml
 import signal
 import ctypes
 import logging
@@ -66,15 +67,15 @@ def header():
     print(f"Exit with {exit_hotkey} or close the application.\n")
 
 
-def get_crown(size, crowns, enable, locale):
+def get_crown(size, crowns, enable):
     if not enable or crowns["g"] is None:
         return ""
     if crowns["g"] <= size:
-        return locale.get("g")
+        return " Gold"
     if crowns["s"] <= size:
-        return locale.get("s")
+        return " Silver"
     if crowns["m"] >= size:
-        return locale.get("m")
+        return " Mini"
     return ""
 
 
@@ -93,6 +94,29 @@ class PassiveTimer:
 class Option(TypedDict):
     type: str
     msg: str
+
+
+class Translator:
+    def __init__(self, language="en_US", path="locales"):
+        self.language = language
+        self.path = path
+        self.translations = {}
+        self.load_translations()
+
+    def load_translations(self):
+        try:
+            with open(f"{absolute_path(self.path)}/{self.language}.yaml", "r", encoding="utf-8") as f:
+                self.translations = yaml.safe_load(f) or {}
+        except FileNotFoundError:
+            self.translations = {}
+
+    def set_language(self, language):
+        self.language = language
+        self.load_translations()
+
+    def __call__(self, key, **kwargs):
+        text = self.translations.get(key, key)
+        return text.format(**kwargs) if kwargs else text
 
 
 def log_timer(pt: PassiveTimer, options: list[Option]):

@@ -8,9 +8,8 @@ import win32gui
 from ahk import AHK, Position
 from PySide6.QtCore import QTimer, Qt, QThread, Signal, qInstallMessageHandler
 from PySide6.QtGui import QColorConstants
-from modules.mhgu_xx import get_data, get_base_address, get_monster_selected
+from modules.mhgu_xx import get_data, get_base_address, get_monster_selected, Monsters
 from modules.config import ConfigOverlay, ConfigLayout, ConfigColors
-from modules.locales import resolve_locale
 from PySide6.QtWidgets import QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout, QSizePolicy
 from modules.utils import (
     TextColor,
@@ -27,7 +26,8 @@ from modules.utils import (
     log_error,
     enable_ansi_colors,
     disable_quick_edit,
-    reset_app
+    reset_app,
+    Translator
 )
 from ahk_wmutil import wmutil_extension
 
@@ -35,18 +35,17 @@ from ahk_wmutil import wmutil_extension
 class DataFetcher(QThread):
     data_fetched = Signal(dict)
 
-    def __init__(self, pid, base_address, show_small_monsters, running, max_workers, locale):
+    def __init__(self, pid, base_address, show_small_monsters, running, max_workers):
         super().__init__()
         self.pid = pid
         self.running = running
         self.base_address = base_address
         self.show_small_monsters = show_small_monsters
         self.max_workers = max_workers
-        self.locale = locale
 
     def run(self):
         while True:
-            data = get_data(self.pid, self.base_address, self.show_small_monsters, self.locale, self.max_workers)
+            data = get_data(self.pid, self.base_address, self.show_small_monsters, self.max_workers)
             try:
                 if not ConfigOverlay.always_show_abnormal_status and ConfigOverlay.show_abnormal_status:
                     data["monster_selected"] = get_monster_selected(self.pid, self.base_address)
@@ -90,7 +89,7 @@ class Overlay(QWidget):
         self.show_crown = ConfigOverlay.show_crown
         self.show_abnormal_status = ConfigOverlay.show_abnormal_status
         self.always_show_abnormal_status = ConfigOverlay.always_show_abnormal_status
-        self.selected_locale = ConfigOverlay.locale
+        self.t = Translator(ConfigOverlay.language)
         self.fix_offset = dict(x=ConfigLayout.fix_x, y=ConfigLayout.fix_y)
         self.hotkey = ConfigOverlay.hotkey
         self.reset_hotkey = ConfigOverlay.reset_hotkey
@@ -267,7 +266,7 @@ class Overlay(QWidget):
 
     def start_data_fetcher(self, labels, label_layouts, status_labels, status_layouts):
         self.data_fetcher = DataFetcher(
-            self.pid, self.base_address, self.show_small_monsters, self.running, self.max_workers, self.selected_locale
+            self.pid, self.base_address, self.show_small_monsters, self.running, self.max_workers
         )
         self.data_fetcher.data_fetched.connect(
             lambda data: self.update_show(data, labels, label_layouts, status_labels, status_layouts)
@@ -389,9 +388,8 @@ class Overlay(QWidget):
                 if data['total'][0] == 1:
                     if monster_selected > 1:
                         monster_selected = 1
-                monsters = resolve_locale(self.selected_locale)
-                large_monster = monsters.large_monsters.get(monster[0])
-                small_monster_name = monsters.small_monsters.get(monster[0])
+                large_monster = Monsters.large_monsters.get(monster[0])
+                small_monster_name = Monsters.small_monsters.get(monster[0])
                 hp = monster[1]
                 initial_hp = monster[2]
                 if initial_hp > 5:
@@ -403,8 +401,10 @@ class Overlay(QWidget):
                         if self.show_size_multiplier:
                             size_multiplier = monster[3]
                             text += f"({size_multiplier}) "
-                        crown_locale = resolve_locale(self.selected_locale).crowns
-                        text += f"{large_monster['name']}{get_crown(size_multiplier, large_monster['crowns'], self.show_crown, crown_locale)}:"
+                        text += (
+                            f"{self.t(large_monster['name'])}"
+                            f"{self.t(get_crown(size_multiplier, large_monster['crowns'], self.show_crown))}:"
+                        )
                         if self.show_hp_percentage:
                             text += f" {math.ceil((hp / initial_hp) * 100)}% |"
                         text += f" {hp}"
@@ -418,11 +418,11 @@ class Overlay(QWidget):
                             i = 0
                             for key, value in abnormal_status.items():
                                 status_label = status_labels[i if monster_number == 1 else i + max_status]
-                                if key == resolve_locale(self.selected_locale).status.get("rage"):
+                                if key == "Rage":
                                     m, s = divmod(value, 60)
-                                    status_label.setText(f"{key}: {m}:{s:02d}")
+                                    status_label.setText(f"{self.t(key)}: {m}:{s:02d}")
                                 else:
-                                    status_label.setText(f"{key}: {value[0]}/{value[1]}")
+                                    status_label.setText(f"{self.t(key)}: {value[0]}/{value[1]}")
                                 if i < 2:
                                     status_layouts[index].addWidget(status_label)
                                 elif i < 4:

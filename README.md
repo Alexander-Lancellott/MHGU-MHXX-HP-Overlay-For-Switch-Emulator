@@ -3,7 +3,7 @@
 <div align="center">
 
   [![StaticBadge](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/)
-  [![App](https://img.shields.io/badge/App-1.1.2-green)](https://github.com/Alexander-Lancellott/MHGU-MHXX-HP-Overlay-For-Switch-Emulator)
+  [![App](https://img.shields.io/badge/App-1.1.3-green)](https://github.com/Alexander-Lancellott/MHGU-MHXX-HP-Overlay-For-Switch-Emulator)
 
 </div>
 
@@ -50,6 +50,9 @@ If your monitor has a resolution higher than 1080p, it's likely you're using a D
 ## How to use
 
 To use the overlay, simply open the `MHGU-MHXX-HP-Overlay.exe` file.
+
+> [!IMPORTANT]  
+> If the overlay is not working properly, try running it with administrator privileges to ensure it functions correctly. If you're unsure how to do this, you can check this [guide](https://www.majorgeeks.com/content/page/how_to_run_an_app_as_administrator_in_windows_10.html).
 
 If one of the games from the [compatibility list](#compatibility) isn't running in the emulator, you will see a red message in the overlay console saying **No game running** and a countdown starting from 20 minutes. When the countdown reaches zero, the overlay will automatically close to save resources.
 
@@ -611,6 +614,50 @@ The `always_show_abnormal_status` option in the `config.ini` file allows abnorma
   </tr>
 </table>
 
+### Language
+
+The `language` option in the `config.ini` file allows you to specify the overlay's language. Currently, only two languages are available: `"en_US"` (default) and `"zh_CN"`.
+
+I'm not responsible for providing translations, so if the available languages don't suit your needs, you can create your own `.yaml` translation file inside the `locales` folder. Use the `zh_CN.yaml` file as a reference or template.
+
+> [!NOTE]
+> In the `language` option of the `config.ini` file, make sure to enter only the filename **without** the `.yaml` extension.
+
+Remember to close and reopen the overlay after making changes in the `config.ini` file for these adjustments to take effect.
+
+<table>
+  <tr align="center">
+    <td>
+      <strong>Option</strong>
+    </td>
+    <td>
+      <strong style="white-space: nowrap; ">
+        Default value
+      </strong>
+    </td>
+    <td>
+      <strong>Type</strong>
+    </td>
+    <td>
+      <strong>Observation</strong>
+    </td>
+  </tr>
+  <tr align="center">
+    <td>
+      language
+    </td>
+    <td>
+      en_US
+    </td>
+    <td>
+      string
+    </td>
+    <td>
+      You must use one of the available languages from the locales folder by writing only the filename without the .yaml extension, or create your own translation file (.yaml). Except for "en_US", which does not require a file as it is the default language.
+    </td>
+  </tr>
+</table>
+
 ### Position (X & Y)
 
 The `x` and `y` options within the `config.ini` file allow you to adjust the position of the overlay using Cartesian coordinates. These values are relative and percentage-based to the size of the target window, with a minimum range of `0` and maximum of `100` for each coordinate.
@@ -1048,3 +1095,4 @@ You will find the `build` in the `build/dist` folder
 - pywin32 - v306
 - numpy - v2.2.4
 - art - v6.2
+- PyYAML - v6.0.2

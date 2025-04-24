@@ -1,4 +1,5 @@
 import re
+from pathlib import Path
 from configparser import ConfigParser
 from dataclasses import dataclass
 from modules.utils import TextColor, prevent_keyboard_exit_error, absolute_path, end
@@ -154,10 +155,6 @@ colors = [
     "yellow",
     "yellowgreen",
 ]
-available_locale = [
-    "en_US",
-    "zh_CN",
-]
 
 prevent_keyboard_exit_error()
 
@@ -251,14 +248,16 @@ class ConfigOverlay:
     always_show_abnormal_status = set_option(
         "always_show_abnormal_status", Config.Overlay, "getboolean", "false"
     )
-    locale = set_option("locale", Config.Overlay, "get", "en_US")
-    if locale not in available_locale:
+    language = set_option("language", Config.Overlay, "get", "en_US")
+    locales_directory = Path(absolute_path("locales"))
+    available_language = {"en_US"}
+    available_language.update(f.stem for f in locales_directory.glob("*.yaml") if f.is_file())
+    if language not in available_language:
         error = (
-            "Invalid locale. Defaulting to en_US. "
-            "Available locales: en_US, zh_CN"
+            "Invalid language configuration. Defaulting to 'en_US'. "
+            "Use only the available options in the 'locales' folder or create your own custom translation file (.yaml)."
         )
         print_error("language", error)
-        locale = "en_US"
 
 
 @dataclass
