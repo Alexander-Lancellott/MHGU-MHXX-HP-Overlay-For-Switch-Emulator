@@ -623,6 +623,10 @@ I'm not responsible for providing translations, so if the available languages do
 > [!NOTE]
 > In the `language` option of the `config.ini` file, make sure to enter only the filename **without** the `.yaml` extension.
 
+> [!TIP]
+> The user [1231joe1231](https://github.com/1231joe1231) contributed both to the `zh_CN.yaml` translation and to the implementation of the internationalization feature.
+> If you encounter any issues with that translation, feel free to contact them for help.
+
 Remember to close and reopen the overlay after making changes in the `config.ini` file for these adjustments to take effect.
 
 <table>
