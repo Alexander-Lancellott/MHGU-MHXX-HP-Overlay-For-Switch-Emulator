@@ -100,9 +100,12 @@ class Overlay(QWidget):
         self.initialize_ui()
 
     def initialize_ui(self):
-        target_window_title = "MONSTER HUNTER (GENERATIONS ULTIMATE|XX Nintendo Switch Ver.)[\\w\\W\\s]+"
-        not_responding_title = " \\([\\w\\s]+\\)$"
-        yuzu_target_window_title = "(yuzu|suyu|sudachi)[\\w\\W\\s]+\\| (HEAD|dev|sudachi)-[\\w\\W\\s]+"
+        target_window_title = (
+            r"(MONSTER HUNTER (GENERATIONS ULTIMATE|XX Nintendo Switch Ver.)|"
+            r"\(0100C3800049C000\)|\(0100770008DD8000\))[\w\W\s]+"
+        )
+        not_responding_title = r" \([\w\s]+\)$"
+        yuzu_target_window_title = r"(yuzu|suyu|sudachi)[\w\W\s]+\| (HEAD|dev|sudachi)-[\w\W\s]+"
         ahk = AHK(version="v2", extensions=[wmutil_extension])
 
         if self.debugger:
@@ -282,7 +285,7 @@ class Overlay(QWidget):
         if not win_not_responding:
             win = ahk.find_window(title=target_window_title, title_match_mode="RegEx")
             if win:
-                if re.search("XX", win.title):
+                if re.search(r"(XX|\(0100C3800049C000\))", win.title):
                     self.is_xx = True
                 win_not_responding2 = ahk.find_window(
                     title=yuzu_target_window_title + not_responding_title, title_match_mode="RegEx"

@@ -181,9 +181,12 @@ if __name__ == "__main__":
     class Test:
         start = time.time()
         ahk = AHK(version="v2")
-        target_window_title = "MONSTER HUNTER (GENERATIONS ULTIMATE|XX Nintendo Switch Ver.)[\\w\\W\\s]+"
-        not_responding_title = " \\([\\w\\s]+\\)$"
-        yuzu_target_window_title = "(yuzu|suyu)[\\w\\W\\s]+\\| (HEAD|dev)-[\\w\\W\\s]+"
+        target_window_title = (
+            r"(MONSTER HUNTER (GENERATIONS ULTIMATE|XX Nintendo Switch Ver.)|"
+            r"\(0100C3800049C000\)|\(0100770008DD8000\))[\w\W\s]+"
+        )
+        not_responding_title = r" \([\w\s]+\)$"
+        yuzu_target_window_title = r"(yuzu|suyu)[\w\W\s]+\| (HEAD|dev)-[\w\W\s]+"
         win = None
         is_xx = False
         base_address = None
@@ -207,6 +210,7 @@ if __name__ == "__main__":
             data = get_data(win.pid, base_address, True)
             monster_selected = get_monster_selected(win.pid, base_address)
             monsters = data["monsters"]
+            print("base_address:", hex(base_address))
             for monster in monsters:
                 if monster[2] > 5:
                     large_monster = Monsters.large_monsters.get(monster[0])
