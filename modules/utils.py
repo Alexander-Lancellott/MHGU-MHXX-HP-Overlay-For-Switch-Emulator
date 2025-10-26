@@ -1,4 +1,5 @@
 import os
+import re
 import sys
 import time
 import yaml
@@ -16,7 +17,7 @@ yellow = Fore.YELLOW
 red = Fore.RED
 reset = Fore.RESET
 
-max_monsters = 7
+max_monsters = 10
 max_status = 8
 
 
@@ -188,3 +189,41 @@ def reset_app():
     clear_screen()
     python = sys.executable
     os.execl(python, python, *sys.argv)
+
+
+class RyujinxLogMonitor:
+    def __init__(self, log_dir):
+        self.log_dir = log_dir
+        self.last_pos = 0
+        self.current_title = None
+
+    def _get_latest_log(self):
+        logs = [f for f in os.listdir(self.log_dir) if f.endswith(".log")]
+        if not logs:
+            return None
+        logs.sort(key=lambda f: os.path.getmtime(os.path.join(self.log_dir, f)), reverse=True)
+        return os.path.join(self.log_dir, logs[0])
+
+    def check_game_running(self):
+        log_file = self._get_latest_log()
+        if not log_file:
+            return None
+
+        with open(log_file, "r", encoding="utf-8") as f:
+            f.seek(self.last_pos)
+            lines = f.readlines()
+            self.last_pos = f.tell()
+
+        for line in lines:
+            # Loader Start: Application Loaded: MONSTER HUNTER GENERATIONS ULTIMATE v1.4.0 [0100770008dd8000] [32-bit]
+            match = re.search(r'Loader Start: Application Loaded: ([^\n]+)', line)
+            if match:
+                self.current_title = match.group(1)
+
+            # HLE.GuestThread.48 KernelSvc : WaitProcessWideKeyAtomic() = TerminationRequested
+            # AudioProcessor.Worker AudioRenderer Work: Stopping audio processor
+            # HLE.OsThread.11 AudioRenderer StopLocked: Stopped audio renderer
+            if re.search(r'= TerminationRequested', line):
+                self.current_title = None
+
+        return self.current_title

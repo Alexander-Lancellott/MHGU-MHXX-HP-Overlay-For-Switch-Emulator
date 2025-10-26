@@ -4,6 +4,7 @@ import sys
 import time
 import math
 import cursor
+import psutil
 import win32gui
 from ahk import AHK, Position
 from PySide6.QtCore import QTimer, Qt, QThread, Signal, qInstallMessageHandler
@@ -27,7 +28,8 @@ from modules.utils import (
     enable_ansi_colors,
     disable_quick_edit,
     reset_app,
-    Translator
+    Translator,
+    RyujinxLogMonitor
 )
 from ahk_wmutil import wmutil_extension
 
@@ -60,6 +62,7 @@ class DataFetcher(QThread):
 class Overlay(QWidget):
     def __init__(self):
         super().__init__()
+        self.log_monitor = None
         self.current_time = 0
         self.last_execution = 0
         self.debounce_time = 0.5
@@ -278,22 +281,29 @@ class Overlay(QWidget):
 
     def get_window(self, ahk, target_window_title, not_responding_title, yuzu_target_window_title):
         self.is_xx = False
-        win = None
-        win_not_responding = ahk.find_window(
-            title=target_window_title + not_responding_title, title_match_mode="RegEx"
-        )
-        if not win_not_responding:
-            win = ahk.find_window(title=target_window_title, title_match_mode="RegEx")
-            if win:
-                if re.search(r"(XX|\(0100C3800049C000\))", win.title):
+        win = ahk.find_window(title=target_window_title, title_match_mode="RegEx")
+        if win:
+            if re.search(r"(XX|\(0100C3800049C000\))", win.title):
+                self.is_xx = True
+            win2 = ahk.find_window(title=yuzu_target_window_title, title_match_mode="RegEx")
+            if win2:
+                win = win2
+        else:
+            target_process = "Ryujinx.exe"
+            win = ahk.find_window(
+                title=r"Ryujinx\s+(?:1\.(?:3\.[3-9]\d*|[4-9]\.\d+)|[2-9]\.\d+\.\d+)", title_match_mode="RegEx"
+            )
+            if win and win.process_name == target_process:
+                directory = os.path.dirname(win.get_process_path())
+                path = os.path.join(directory, "Logs")
+                self.log_monitor = RyujinxLogMonitor(path)
+                target_title = self.log_monitor.check_game_running()
+                if not target_title:
+                    win = None
+                if re.search(r"(XX|0100c3800049c000)", target_title):
                     self.is_xx = True
-                win_not_responding2 = ahk.find_window(
-                    title=yuzu_target_window_title + not_responding_title, title_match_mode="RegEx"
-                )
-                if not win_not_responding2:
-                    win2 = ahk.find_window(title=yuzu_target_window_title, title_match_mode="RegEx")
-                    if win2:
-                        win = win2
+            else:
+                win = None
         return win
 
     @staticmethod
@@ -481,17 +491,23 @@ class Overlay(QWidget):
             target = self.get_window_position(win.id)
             monitor = win.get_monitor()
             scale_factor = monitor.scale_factor
-            hide_ui = not re.search("(GENERATIONS ULTIMATE|XX)", win.title)
+            hide_ui = not re.search("(GENERATIONS ULTIMATE|XX|Ryujinx)", win.title)
             self.process_name = win.process_name
             self.pid = win.pid
             self.is_ryujinx = self.process_name.lower() == "ryujinx.exe"
             self.resize(self.minimumSizeHint())
             self.is_borderless = monitor.size[0] <= target.width and monitor.size[1] - 1 <= target.height
 
-            margin_top = 35 * scale_factor
-            margin_bottom = 11 * scale_factor
-            margin_left = 10 * scale_factor
-            margin_right = 10 * scale_factor
+            if self.is_ryujinx:
+                margin_top = 10 * scale_factor
+                margin_bottom = 10 * scale_factor
+                margin_left = 10 * scale_factor
+                margin_right = 10 * scale_factor
+            else:
+                margin_top = 35 * scale_factor
+                margin_bottom = 11 * scale_factor
+                margin_left = 10 * scale_factor
+                margin_right = 10 * scale_factor
 
             if self.is_borderless:
                 margin_top = 4 * scale_factor
@@ -501,11 +517,11 @@ class Overlay(QWidget):
 
             if not self.emu_hide_ui and not hide_ui:
                 if self.is_ryujinx:
-                    margin_top = 69 * scale_factor
-                    margin_bottom = 33 * scale_factor
+                    margin_top = 38 * scale_factor
+                    margin_bottom = 28 * scale_factor
                     if self.is_borderless:
-                        margin_top = 38 * scale_factor
-                        margin_bottom = 25 * scale_factor
+                        margin_top = 4 * scale_factor
+                        margin_bottom = 6 * scale_factor
                 else:
                     margin_top = 55 * scale_factor
                     margin_bottom = 32 * scale_factor

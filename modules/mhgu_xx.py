@@ -1,3 +1,4 @@
+import os
 import re
 import time
 from math import ceil
@@ -9,6 +10,7 @@ import scanmodule
 import numpy as np
 from ahk import AHK
 from modules.models import Monsters
+from modules.utils import RyujinxLogMonitor
 
 
 def read_int(process_handle, address, length=2):
@@ -115,6 +117,7 @@ def scan_aob_batched(
     return {
         "monsters": large_monster_results + small_monster_results,
         "total": [len(large_monster_results), len(small_monster_results)],
+        "monster_selected": 0
     }
 
 
@@ -127,7 +130,7 @@ def get_monster_selected(
     base_address = start_address
     process_handle = pymem.process.open(pid)
     pattern = "28 00 00 00 D1"
-    scan_size = 0x5000000
+    scan_size = 0x9000000
 
     wildcard = "??"
     bytes_pattern = bytes(int(byte, 16) if byte != wildcard else 0x00 for byte in pattern.split())
@@ -162,13 +165,16 @@ def get_base_address(process_name):
     region_address = scanmodule.get_regions(process_name, 0x9BBF000)
     if not region_address:
         region_address = scanmodule.get_regions(process_name, 0x9BAE000)
+        if not region_address:
+            region_address = scanmodule.get_regions(process_name, 0xDC11000)
+
     return region_address
 
 
 def get_data(pid, base_address, only_large_monsters, workers=2):
     process_handle = pymem.process.open(pid)
     pattern = "?? ?? 01 ?? ?? 18 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 20 00 00 00 00 00 00 00"
-    scan_size = 0x6000000  # 0x9BBF000 or 7BBF000
+    scan_size = 0xB000000  # 0x9BBF000 or 7BBF000
     if process_handle:
         return scan_aob_batched(
             process_handle, base_address, pattern, scan_size, only_large_monsters, max_workers=workers
@@ -185,26 +191,32 @@ if __name__ == "__main__":
             r"(MONSTER HUNTER (GENERATIONS ULTIMATE|XX Nintendo Switch Ver.)|"
             r"\(0100C3800049C000\)|\(0100770008DD8000\))[\w\W\s]+"
         )
-        not_responding_title = r" \([\w\s]+\)$"
         yuzu_target_window_title = r"(yuzu|suyu)[\w\W\s]+\| (HEAD|dev)-[\w\W\s]+"
-        win = None
         is_xx = False
         base_address = None
-        not_responding = ahk.find_window(
-            title=target_window_title + not_responding_title, title_match_mode="RegEx"
-        )
-        if not not_responding:
-            win = ahk.find_window(title=target_window_title, title_match_mode="RegEx")
-            if win:
-                if re.search("XX", win.title):
+        win = ahk.find_window(title=target_window_title, title_match_mode="RegEx")
+        if win:
+            if re.search("XX", win.title):
+                is_xx = True
+            win2 = ahk.find_window(title=yuzu_target_window_title, title_match_mode="RegEx")
+            if win2:
+                win = win2
+        else:
+            target_process = "Ryujinx.exe"
+            win = ahk.find_window(
+                title=r"Ryujinx\s+(?:1\.(?:3\.[3-9]\d*|[4-9]\.\d+)|[2-9]\.\d+\.\d+)", title_match_mode="RegEx"
+            )
+            if win and win.process_name == target_process:
+                directory = os.path.dirname(win.get_process_path())
+                path = os.path.join(directory, "Logs")
+                log_monitor = RyujinxLogMonitor(path)
+                target_title = log_monitor.check_game_running()
+                if not target_title:
+                    win = None
+                if re.search(r"(XX|0100c3800049c000)", target_title):
                     is_xx = True
-                not_responding2 = ahk.find_window(
-                    title=yuzu_target_window_title + not_responding_title, title_match_mode="RegEx"
-                )
-                if not not_responding2:
-                    win2 = ahk.find_window(title=yuzu_target_window_title, title_match_mode="RegEx")
-                    if win2:
-                        win = win2
+            else:
+                win = None
         if win:
             base_address = get_base_address(win.process_name)
             data = get_data(win.pid, base_address, True)
