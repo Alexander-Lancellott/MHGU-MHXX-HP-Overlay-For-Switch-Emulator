@@ -4,7 +4,6 @@ import sys
 import time
 import math
 import cursor
-import psutil
 import win32gui
 from ahk import AHK, Position
 from PySide6.QtCore import QTimer, Qt, QThread, Signal, qInstallMessageHandler
