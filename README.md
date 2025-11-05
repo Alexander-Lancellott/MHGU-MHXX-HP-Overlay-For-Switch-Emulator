@@ -38,7 +38,7 @@ Below, I also include a list of the version of each emulator in which I have con
 - S*** 0.0.3
 
 > [!IMPORTANT]
-> Please note that to ensure the proper functioning of the Overlay on Ryujinx 1.3.3, you must use [version 1.1.6](https://github.com/Alexander-Lancellott/MHGU-MHXX-HP-Overlay-For-Switch-Emulator/releases/tag/v1.1.6) and keep all main logs enabled in Ryujinx’s settings, as shown in the image below.
+> Please note that to ensure the proper functioning of the Overlay on Ryujinx 1.3.3, you must use [version 1.1.7](https://github.com/Alexander-Lancellott/MHGU-MHXX-HP-Overlay-For-Switch-Emulator/releases/tag/v1.1.7) and keep all main logs enabled in Ryujinx’s settings, as shown in the image below.
 > ![Ryujinx logs](https://res.cloudinary.com/dms5y8rug/image/upload/c_thumb,g_face,q_auto:best/MH-HP-Overlay/ryujinx_logs.webp)
 
 ## High DPI Scaling (optional, only if you notice it)
