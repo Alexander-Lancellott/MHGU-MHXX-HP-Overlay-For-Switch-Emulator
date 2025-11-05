@@ -294,7 +294,9 @@ class Overlay(QWidget):
             )
             if win and win.process_name == target_process:
                 directory = os.path.dirname(win.get_process_path())
-                path = os.path.join(directory, "Logs")
+                path = os.path.join(directory, r"portable\Logs")
+                if not os.path.isdir(path):
+                    path = os.path.join(directory, "Logs")
                 self.log_monitor = RyujinxLogMonitor(path)
                 target_title = self.log_monitor.check_game_running()
                 if not target_title:
