@@ -38,8 +38,17 @@ Below, I also include a list of the version of each emulator in which I have con
 - S*** 0.0.3
 
 > [!IMPORTANT]
-> Please note that to ensure the proper functioning of the Overlay on Ryujinx 1.3.3, you must use [version 1.1.7](https://github.com/Alexander-Lancellott/MHGU-MHXX-HP-Overlay-For-Switch-Emulator/releases/tag/v1.1.7) and keep all main logs enabled in Ryujinx’s settings, as shown in the image below.
-> ![Ryujinx logs](https://res.cloudinary.com/dms5y8rug/image/upload/c_thumb,g_face,q_auto:best/MH-HP-Overlay/ryujinx_logs.webp)
+> Please note that to ensure the Overlay works correctly in **Ryujinx 1.3.3**, you must enable the **Classic Interface** option.
+> You can find it under **Options → Settings → Interface**, in the **General** section, as shown in the example image.
+>
+> ![Ryujinx Classic Interface](https://res.cloudinary.com/dms5y8rug/image/upload/c_thumb,g_face,q_auto:best/MH-HP-Overlay/ryujinx_classic_Interface.webp)
+>
+> After enabling the option and clicking **Apply**, remember to close and reopen Ryujinx for the changes to take effect.
+>
+> If this option is removed in future versions, or if you prefer to use the new interface, an **alternative feature** has been added that allows the Overlay to work without relying on the classic interface. However, this feature may cause **instability on certain systems**. The cause is currently unknown, so it is considered **experimental**.
+>
+> This alternative feature, called **Read ryujinx logs**, will only be available starting from version [version 1.1.7](https://github.com/Alexander-Lancellott/MHGU-MHXX-HP-Overlay-For-Switch-Emulator/releases/tag/v1.1.7) of the Overlay.
+> If you want to try it and check whether it functions properly on your system, refer to the [Read ryujinx logs section](#read-ryujinx-logs-experimental) for instructions on how to enable it.
 
 ## High DPI Scaling (optional, only if you notice it)
 
@@ -327,6 +336,49 @@ Remember to close and reopen the overlay after making changes to the `config.ini
     <td>Must be greater than or equal to 0.1</td>
   </tr>
 </table>
+
+### Read ryujinx logs (experimental)
+
+The `enable_read_ryujinx_logs` option in the `config.ini` file, when set to `true`, allows the Overlay to function without relying on the classic interface.
+Please note that this option may cause **instability** on some systems. If you experience any issues, it is recommended to return to the classic interface and leave this option at its default value (`false`).
+
+Before enabling this feature, make sure that `all main Ryujinx logs are enabled`, as shown in the image.
+
+![Ryujinx logs](https://res.cloudinary.com/dms5y8rug/image/upload/c_thumb,g_face,q_auto:best/MH-HP-Overlay/ryujinx_logs.webp)
+
+<table>
+  <tr align="center">
+    <td>
+      <strong>Option</strong>
+    </td>
+    <td>
+      <strong style="white-space: nowrap; ">
+        Default value
+      </strong>
+    </td>
+    <td>
+      <strong>Type</strong>
+    </td>
+    <td>
+      <strong>Observation</strong>
+    </td>
+  </tr>
+  <tr align="center">
+    <td>
+      enable_read_ryujinx_logs
+    </td>
+    <td>
+      false
+    </td>
+    <td>
+      boolean
+    </td>
+    <td>
+      This is case-insensitive and recognizes boolean values from 'yes'/'no', 'on'/'off', 'true'/'false' and '1'/'0'
+    </td>
+  </tr>
+</table>
+
 
 ### Show Initial HP
 

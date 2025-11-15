@@ -227,6 +227,9 @@ class ConfigOverlay:
     max_workers = max_workers if 1 <= max_workers <= 16 else 2
     hp_update_time = set_option("hp_update_time", Config.Overlay, "getfloat", "0.6")
     hp_update_time = hp_update_time if hp_update_time >= 0.1 else 0.1
+    enable_read_ryujinx_logs = set_option(
+        "enable_read_ryujinx_logs", Config.Overlay, "getboolean", "false"
+    )
     show_initial_hp = set_option(
         "show_initial_hp", Config.Overlay, "getboolean", "true"
     )

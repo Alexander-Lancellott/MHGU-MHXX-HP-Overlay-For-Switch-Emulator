@@ -84,6 +84,7 @@ class Overlay(QWidget):
         self.orientation = ConfigLayout.orientation
         self.x = ConfigLayout.x
         self.y = ConfigLayout.y
+        self.enable_read_ryujinx_logs = ConfigOverlay.enable_read_ryujinx_logs
         self.show_initial_hp = ConfigOverlay.show_initial_hp
         self.show_hp_percentage = ConfigOverlay.show_hp_percentage
         self.show_small_monsters = ConfigOverlay.show_small_monsters,
@@ -287,7 +288,7 @@ class Overlay(QWidget):
             win2 = ahk.find_window(title=yuzu_target_window_title, title_match_mode="RegEx")
             if win2:
                 win = win2
-        else:
+        elif self.enable_read_ryujinx_logs:
             target_process = "Ryujinx.exe"
             win = ahk.find_window(
                 title=r"Ryujinx\s+(?:1\.(?:3\.[3-9]\d*|[4-9]\.\d+)|[2-9]\.\d+\.\d+)", title_match_mode="RegEx"
@@ -295,7 +296,7 @@ class Overlay(QWidget):
             if win and win.process_name == target_process:
                 directory = os.path.dirname(win.get_process_path())
                 path = os.path.join(directory, r"portable\Logs")
-                if not os.path.isdir(path):
+                if not os.path.exists(path):
                     path = os.path.join(directory, "Logs")
                 self.log_monitor = RyujinxLogMonitor(path)
                 target_title = self.log_monitor.check_game_running()
@@ -303,8 +304,6 @@ class Overlay(QWidget):
                     win = None
                 if re.search(r"(XX|0100c3800049c000)", target_title):
                     self.is_xx = True
-            else:
-                win = None
         return win
 
     @staticmethod
