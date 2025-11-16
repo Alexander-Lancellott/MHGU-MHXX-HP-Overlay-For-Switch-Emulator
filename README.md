@@ -670,6 +670,43 @@ The `always_show_abnormal_status` option in the `config.ini` file allows abnorma
   </tr>
 </table>
 
+### Show DMG and Hit DMG
+
+The `show_dmg_and_hit_dmg` option in the `config.ini` file allows you to show or hide the "DMG" and "Hit DMG" labels displayed in abnormal status.
+
+<table>
+  <tr align="center">
+    <td>
+      <strong>Option</strong>
+    </td>
+    <td>
+      <strong style="white-space: nowrap; ">
+        Default value
+      </strong>
+    </td>
+    <td>
+      <strong>Type</strong>
+    </td>
+    <td>
+      <strong>Observation</strong>
+    </td>
+  </tr>
+  <tr align="center">
+    <td>
+      show_dmg_and_hit_dmg
+    </td>
+    <td>
+      true
+    </td>
+    <td>
+      boolean
+    </td>
+    <td>
+      This is case-insensitive and recognizes boolean values from 'yes'/'no', 'on'/'off', 'true'/'false' and '1'/'0'
+    </td>
+  </tr>
+</table>
+
 ### Language
 
 The `language` option in the `config.ini` file allows you to specify the overlay's language. Currently, only two languages are available: `en_US` (default) and `zh_CN`.

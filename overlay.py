@@ -36,17 +36,30 @@ from ahk_wmutil import wmutil_extension
 class DataFetcher(QThread):
     data_fetched = Signal(dict)
 
-    def __init__(self, pid, base_address, show_small_monsters, running, max_workers):
+    def __init__(
+        self, pid, base_address, show_small_monsters, show_dmg_and_hit_dmg, running, hp_state, hit_dmg, max_workers
+    ):
         super().__init__()
         self.pid = pid
         self.running = running
         self.base_address = base_address
         self.show_small_monsters = show_small_monsters
+        self.show_dmg_and_hit_dmg = show_dmg_and_hit_dmg
+        self.hp_state = hp_state
+        self.hit_dmg = hit_dmg
         self.max_workers = max_workers
 
     def run(self):
         while True:
-            data = get_data(self.pid, self.base_address, self.show_small_monsters, self.max_workers)
+            data = get_data(
+                self.pid,
+                self.base_address,
+                self.show_small_monsters,
+                self.show_dmg_and_hit_dmg,
+                self.hp_state,
+                self.hit_dmg,
+                self.max_workers
+            )
             try:
                 if not ConfigOverlay.always_show_abnormal_status and ConfigOverlay.show_abnormal_status:
                     data["monster_selected"] = get_monster_selected(self.pid, self.base_address)
@@ -87,7 +100,8 @@ class Overlay(QWidget):
         self.enable_read_ryujinx_logs = ConfigOverlay.enable_read_ryujinx_logs
         self.show_initial_hp = ConfigOverlay.show_initial_hp
         self.show_hp_percentage = ConfigOverlay.show_hp_percentage
-        self.show_small_monsters = ConfigOverlay.show_small_monsters,
+        self.show_small_monsters = ConfigOverlay.show_small_monsters
+        self.show_dmg_and_hit_dmg = ConfigOverlay.show_dmg_and_hit_dmg
         self.show_size_multiplier = ConfigOverlay.show_size_multiplier
         self.show_crown = ConfigOverlay.show_crown
         self.show_abnormal_status = ConfigOverlay.show_abnormal_status
@@ -98,6 +112,8 @@ class Overlay(QWidget):
         self.reset_hotkey = ConfigOverlay.reset_hotkey
         self.data_fetcher = None
         self.hp_update_time = round(ConfigOverlay.hp_update_time * 1000)
+        self.hp_state = {}
+        self.hit_dmg = {}
         self.debugger = ConfigOverlay.debugger
         self.pt = PassiveTimer()
         self.initialize_ui()
@@ -272,7 +288,14 @@ class Overlay(QWidget):
 
     def start_data_fetcher(self, labels, label_layouts, status_labels, status_layouts):
         self.data_fetcher = DataFetcher(
-            self.pid, self.base_address, self.show_small_monsters, self.running, self.max_workers
+            self.pid,
+            self.base_address,
+            self.show_small_monsters,
+            self.show_dmg_and_hit_dmg,
+            self.running,
+            self.hp_state,
+            self.hit_dmg,
+            self.max_workers
         )
         self.data_fetcher.data_fetched.connect(
             lambda data: self.update_show(data, labels, label_layouts, status_labels, status_layouts)
@@ -387,6 +410,8 @@ class Overlay(QWidget):
     def update_show(self, data, labels, label_layouts, status_labels, status_layouts):
         for index, label in enumerate(labels):
             if data['total'][0] == 0:
+                self.hp_state = {}
+                self.hit_dmg = {}
                 for i in range(0, max_status):
                     status_label = status_labels[i]
                     status_label2 = status_labels[i + max_status]
@@ -434,6 +459,8 @@ class Overlay(QWidget):
                                 if key == "Rage":
                                     m, s = divmod(value, 60)
                                     status_label.setText(f"{self.t(key)}: {m}:{s:02d}")
+                                elif key in ("DMG", "Hit DMG"):
+                                    status_label.setText(f"{self.t(key)}: {value}")
                                 else:
                                     status_label.setText(f"{self.t(key)}: {value[0]}/{value[1]}")
                                 if i < 2:

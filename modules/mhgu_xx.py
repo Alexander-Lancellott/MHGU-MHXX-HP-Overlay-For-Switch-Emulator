@@ -3,6 +3,7 @@ import re
 import time
 from math import ceil
 from struct import unpack
+from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import pymem
@@ -26,6 +27,9 @@ def scan_aob_batched(
         base_address,
         pattern, scan_size,
         show_small_monsters,
+        show_dmg_and_hit_dmg,
+        hp_state,
+        hit_dmg,
         num_chunks=400,
         max_workers=2
 ):
@@ -57,14 +61,21 @@ def scan_aob_batched(
         results.sort(key=lambda x: read_int(process_handle, x[1] - 0x450))
 
         for result in results:
+            pointer = result[1]
             name = read_int(process_handle, result[0])
-            hp = read_int(process_handle, result[1])
+            hp = read_int(process_handle, pointer)
             initial_hp = read_int(process_handle, result[2])
-            is_visible = read_int(process_handle, result[1] - 0x17A0, 1) != 0x7 or hp != 0x0
+            is_visible = read_int(process_handle, pointer - 0x17A0, 1) != 0x7 or hp != 0x0
+            if large_monsters.get(name) and not is_visible and show_dmg_and_hit_dmg:
+                hp_state.update({pointer: 0})
+                hit_dmg.update({pointer: 0})
             if large_monsters.get(name) and is_visible:
-                pointer = result[1]
-                monster_size = int(round(read_float(process_handle, result[1] - 0x1C0) * 100, 2))
-                abnormal_status = {}
+                if not hp_state.get(pointer) and show_dmg_and_hit_dmg:
+                    hp_state.update({pointer: 0})
+                if not hit_dmg.get(pointer) and show_dmg_and_hit_dmg:
+                    hit_dmg.update({pointer: 0})
+                monster_size = int(round(read_float(process_handle, pointer - 0x1C0) * 100, 2))
+                abnormal_status = OrderedDict()
 
                 def add_abnormal_status(status_name: str, values: list):
                     if values[1] != 0xFFFF:
@@ -105,8 +116,18 @@ def scan_aob_batched(
                         read_float(process_handle, pointer + 0x1A4) / 60
                     ))
                 })
-                large_monster_results.append([name, hp, initial_hp, monster_size, abnormal_status, pointer])
-
+                if show_dmg_and_hit_dmg:
+                    abnormal_status.update({
+                        "DMG": initial_hp - hp
+                    })
+                    if hp_state.get(pointer) != hp:
+                        if hp_state.get(pointer) != 0:
+                            hit_dmg.update({pointer: hp_state.get(pointer) - hp})
+                        hp_state.update({pointer: hp})
+                    abnormal_status.update({
+                        "Hit DMG": hit_dmg.get(pointer)
+                    })
+                large_monster_results.append([name, hp, initial_hp, monster_size, abnormal_status, hex(pointer)])
             elif small_monsters.get(name) and show_small_monsters and is_visible:
                 monster_name = small_monsters.get(name)
                 if monster_name:
@@ -171,13 +192,21 @@ def get_base_address(process_name):
     return region_address
 
 
-def get_data(pid, base_address, only_large_monsters, workers=2):
+def get_data(pid, base_address, show_small_monsters, show_dmg_and_hit_dmg, hp_state, hit_dmg, workers=2):
     process_handle = pymem.process.open(pid)
     pattern = "?? ?? 01 ?? ?? 18 00 00 ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? ?? 20 00 00 00 00 00 00 00"
     scan_size = 0xB000000  # 0x9BBF000 or 7BBF000
     if process_handle:
         return scan_aob_batched(
-            process_handle, base_address, pattern, scan_size, only_large_monsters, max_workers=workers
+            process_handle,
+            base_address,
+            pattern,
+            scan_size,
+            show_small_monsters,
+            show_dmg_and_hit_dmg,
+            hp_state,
+            hit_dmg,
+            max_workers=workers
         )
     else:
         return []
@@ -219,7 +248,9 @@ if __name__ == "__main__":
                 win = None
         if win:
             base_address = get_base_address(win.process_name)
-            data = get_data(win.pid, base_address, True)
+            data = get_data(
+                win.pid, base_address, True, True, {}, {}
+            )
             monster_selected = get_monster_selected(win.pid, base_address)
             monsters = data["monsters"]
             print("base_address:", hex(base_address))
